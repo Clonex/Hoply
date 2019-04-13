@@ -37,6 +37,6 @@ export default class App extends React.Component {
     return this.state.user.id ? 
       <SiteHandler updateData={this.updateState} user={this.state.user} db={this.state.db}/> 
       : 
-      <LoginPage updateData={this.updateState}/>;
+      <LoginPage updateData={this.updateState} db={this.state.db}/>;
   }
 }

@@ -5,28 +5,30 @@ import { Icon } from 'native-base';
 import MessagesPage from "./MessagesPage";
 import FeedPage from "./FeedPage";
 
-let iconHandler = (focused, tintColor, iconName, iconType) => <Icon name={iconName} style={focused ? {color: tintColor} : {}} type={iconType}/>;
-
-let tabBar = createBottomTabNavigator({
-    Timeline: {
-        screen: FeedPage,
-        navigationOptions: {
-            tabBarIcon: ({ focused, tintColor }) => iconHandler(focused, tintColor, "timeline", "MaterialIcons")
-        }
-    },
-    Messages: {
-        screen: MessagesPage,
-        navigationOptions: {
-            tabBarIcon: ({ focused, tintColor }) => iconHandler(focused, tintColor, "comments", "FontAwesome")
-        }
-    },
-    Profile: {
-        screen: MessagesPage,
-        navigationOptions: {
-            tabBarIcon: ({ focused, tintColor }) => iconHandler(focused, tintColor, "person")
-        }
-    },
-});
-
-export default createAppContainer(tabBar);
-
+export default class SiteHandler extends React.Component {
+    iconHandler = (focused, tintColor, iconName, iconType) => <Icon name={iconName} style={focused ? {color: tintColor} : {}} type={iconType}/>
+    render() {
+    let TabBar = createAppContainer(createBottomTabNavigator({
+        Timeline: {
+            screen: props => <FeedPage {...props} {...this.props}/>,
+            navigationOptions: {
+                tabBarIcon: ({ focused, tintColor }) => this.iconHandler(focused, tintColor, "timeline", "MaterialIcons")
+            }
+        },
+        Messages: {
+            screen: props => <MessagesPage {...props} {...this.props}/>,
+            navigationOptions: {
+                tabBarIcon: ({ focused, tintColor }) => this.iconHandler(focused, tintColor, "comments", "FontAwesome")
+            }
+        },
+        Profile: {
+            screen: props => <MessagesPage {...props} {...this.props}/>,
+            navigationOptions: {
+                tabBarIcon: ({ focused, tintColor }) => this.iconHandler(focused, tintColor, "person")
+            }
+        },
+    }));
+    
+    return (<TabBar/>);
+  }
+}

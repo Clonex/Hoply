@@ -9,14 +9,29 @@ export default class LoginPage extends React.Component {
   {
     super();
     this.state = {
-      username: "Eyo",
+      username: "",
       loading: false,
     };
   }
-
   syncData = async () => {
     let messages = await api("messages");
-    console.log(messages);
+    
+    try {
+
+      this.props.db.transaction(tx => {
+        console.log("inserting", messages);
+        let message = messages[0];
+        tx.executeSql('INSERT INTO messages (sender, receiver, body, stamp) VALUES (?, ?, ?, ?)', [message.sender, message.receiver, message.body, message.body]);
+        //messages.map(message => );
+        setTimeout(() => {
+          tx.executeSql('SELECT * FROM messages', [], (_, { rows }) => console.log("Data", rows));
+          
+        }, 500);
+      });
+    } catch(e)
+    {
+      console.log(e);
+    }
   }
 
   checkLogin = async () => {

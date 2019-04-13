@@ -4,7 +4,6 @@ import { Container, Content, Text, Header} from 'native-base';
 
 
 export default class FeedPage extends React.Component {
-
   render() {
     return (<Container>
              <Header />
