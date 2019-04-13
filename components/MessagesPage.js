@@ -1,13 +1,13 @@
 import React from 'react';
-import { StyleSheet, TextInput, View, KeyboardAvoidingView } from 'react-native';
-import { Container, Header, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button } from 'native-base';
+import { StyleSheet, TextInput, View, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button } from 'native-base';
+import Header from "./UI/Header";
 import {api} from "./baseFunctions";
 class MessagesPage extends React.Component {
 	constructor()
 	{
 		super();
 		this.state = {
-			myID: "Eyo",
 			selectedMessage: false,
 			messages: [],
 			currMsg: "",
@@ -32,13 +32,19 @@ class MessagesPage extends React.Component {
 			body: this.state.currMsg,
 			receiver: this.state.selectedMessage
 		});
-		
-		if(typeof data === "string")
+		console.log("SendtMSG", data);
+		if(data === 200 || data === 201)
 		{
 			this.setState({currMsg: ""});
 			this.syncMessages();
 		}
 	}
+	focusChat = (id) => {
+		this.setState({
+			selectedMessage: id,
+			currMsg: "",
+		});
+	};
   render() {
 		let myMessages = this.state.messages.filter(message => message.sender === this.props.user.id || message.receiver === this.props.user.id);
 		let unique = [];
@@ -48,42 +54,54 @@ class MessagesPage extends React.Component {
 			{
 				unique.push(id);
 			}
-		});
+		}); 
 
 		return (<Container>
-        <Header />
-        <Content>
+						<Header
+							leftContent={this.state.selectedMessage ? 
+							<Button transparent onPress={() => this.focusChat(false)}>
+								<Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
+							</Button> : false}
+							middleTitle={this.state.selectedMessage ? this.state.selectedMessage : "Messages"}
+							rightContent={this.state.selectedMessage ? <Button transparent><Text style={styles.header}>Invite</Text></Button> : <Button transparent><Text style={styles.header}>+</Text></Button>}
+							/>
         	{
         		this.state.selectedMessage ? 
-						<View>
-							{
-								this.getMessages(this.state.selectedMessage, this.props.user.id).map((message, key) => <Card style={[styles.messageCard, styles[message.sender === this.props.user.id ? "meCard" : "otherCard"]]} key={key}>
-									<CardItem bordered>
-										<Body>
-											<Text>
-												{message.body}
-											</Text>
-										</Body>
-									</CardItem>
-									<CardItem footer>
-										<Text>{message.sender}</Text>
-									</CardItem>
-								</Card>)
-							}
-							<View>
-								<TextInput
-											style={{height: 40, borderColor: 'gray', borderWidth: 1,}}
+						<KeyboardAvoidingView behavior="position" keyboardVerticalOffset={-28} enabled>
+							<View style={{height: "92%", overflow: "scroll"}}>
+								<ScrollView ref="scrollr" onContentSizeChange={(contentWidth, contentHeight)=>{        
+										this.refs.scrollr.scrollToEnd({animated: false});
+								}}>
+								{
+									this.getMessages(this.state.selectedMessage, this.props.user.id).map((message, key) => <Card style={[styles.messageCard, styles[message.sender === this.props.user.id ? "meCard" : "otherCard"]]} key={key}>
+										<CardItem bordered>
+											<Body>
+												<Text>
+													{message.body}
+												</Text>
+											</Body>
+										</CardItem>
+										<CardItem footer>
+											<Text>{message.sender}</Text>
+										</CardItem>
+									</Card>)
+								}
+								</ScrollView>
+							</View>
+							<View style={{ flexDirection: "row", flex: 1, justifyContent: 'space-between', padding: 5 }}>
+									<TextInput
+											style={{height: 40, width: "85%", borderColor: 'rgba(6, 6, 6, 0.29)', borderWidth: 1,}}
 											onChangeText={(text) => this.setState({currMsg: text})}
 											value={this.state.currMsg}
-										/>
-								<Button onPress={() => this.sendMessage()}>
-									<Text> >> </Text>
-								</Button>
+									/>
+									<Button light onPress={() => this.sendMessage()} style={{height: 40, width: "15%", flex: 1, justifyContent: "center", alignContent: "center"}}>
+										<Icon name="paper-plane" type="FontAwesome"/>
+									</Button>
 							</View>
-						</View>
+						</KeyboardAvoidingView>
         		: <List>
 								{
-									unique.map((chat, key) => <ListItem onPress={() => this.setState({selectedMessage: chat})} key={key}>
+									unique.map((chat, key) => <ListItem onPress={() => this.focusChat(chat)} key={key}>
 											<Left>
 												<Text>{chat}</Text>
 											</Left>
@@ -96,7 +114,6 @@ class MessagesPage extends React.Component {
 		            
 		          </List>
         	}
-        </Content>
       </Container>);
   }
 }
@@ -122,5 +139,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center'
   },
+
+  header: {fontSize: 20}
 	
 });

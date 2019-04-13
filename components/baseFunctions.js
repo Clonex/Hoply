@@ -10,7 +10,7 @@ export async function api(path = "users", params = {}, method = "GET", payload =
 			    	"Content-type": "application/json",
 			    }
 	      });
-	  return method === "GET" ? response.json() : response.text();
+	  return method === "GET" ? response.json() : response.status;
   } catch(e) {
   	console.log("Error", e);
 		return false;
