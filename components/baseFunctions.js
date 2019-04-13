@@ -1,7 +1,8 @@
-export async function api(path = "users", method = "GET", payload = false)
+export async function api(path = "users", params = {}, method = "GET", payload = false)
 {
 	try {
-		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + path, {
+		let paramVar = swaggerParams(params).join("&");
+		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + path + "?" + paramVar, {
 	        method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
 	        headers: {
@@ -16,4 +17,19 @@ export async function api(path = "users", method = "GET", payload = false)
 	}
 }
 
+
+function swaggerParams(data = {})
+{
+	let types = {
+		"=": "eq",
+		">": "gt",
+		"<": "lt",
+		"contains": "contains",
+		"startswidth": "startswidth",
+	};
+	return Object.keys(data).map(param => {
+		let d = data[param];
+		return param + "=" + types[d.t] + "." + d.v;
+	});
+}
 

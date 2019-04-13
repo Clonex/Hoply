@@ -2,8 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Container, Header, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon } from 'native-base';
 
-
-export default class MessagesPage extends React.Component {
+class MessagesPage extends React.Component {
 	constructor()
 	{
 		super();
@@ -72,6 +71,8 @@ export default class MessagesPage extends React.Component {
       </Container>);
   }
 }
+
+export default MessagesPage;//autoMap(MessagesPage);
 
 const styles = StyleSheet.create({
 	messageCard: {
