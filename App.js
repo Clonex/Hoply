@@ -35,7 +35,14 @@ export default class App extends React.Component {
       );
     });*/
   }
-
+  signOut = () => {
+    this.setState({
+      user: {
+        id: false,
+        name: false
+      }
+    });
+  }
   updateState = (key, value) => {
     let newState = {};
     newState[key] = value;
@@ -43,7 +50,7 @@ export default class App extends React.Component {
   }
   render() {
     return this.state.user.id ? 
-      <SiteHandler updateData={this.updateState} user={this.state.user} db={this.state.db}/> 
+      <SiteHandler updateData={this.updateState} user={this.state.user} db={this.state.db} signOut={this.signOut}/> 
       : 
       <LoginPage updateData={this.updateState} db={this.state.db}/>;
   }

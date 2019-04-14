@@ -38,7 +38,7 @@ export default class UserSelectorModal extends React.Component {
           <Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
         </Button>}
         middleTitle={"Users"}
-        rightContent={<Button transparent style={{width: 50}}><Text style={styles.header}>Select</Text></Button>}
+        /*rightContent={<Button transparent style={{width: 60}}><Text style={styles.header}>Select</Text></Button>}*/
         />
         <ScrollView>
           <List>

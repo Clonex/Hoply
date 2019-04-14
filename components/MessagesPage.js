@@ -9,6 +9,7 @@ class MessagesPage extends React.Component {
 	constructor()
 	{
 		super();
+		this.interval = false;
 		this.blankState = {
 			selectedMessage: false,
 			messages: [],
@@ -16,6 +17,9 @@ class MessagesPage extends React.Component {
 			selectingUser: false,
 		};
 		this.state = {...this.blankState};
+	}
+	blurred = async (payload) => {
+		clearInterval(this.interval);
 	}
 	mounted = async (payload) =>
 	{
@@ -29,6 +33,8 @@ class MessagesPage extends React.Component {
 		await this.dbMessages();
 		await syncMessages(this.props.db);
 		await this.dbMessages();
+
+		this.interval = setInterval(() => syncMessages(this.props.db), 1500);
 	}
 
 	dbMessages = async () => {
@@ -90,7 +96,7 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		return (<Container>
-						<NavigationEvents onWillFocus={this.mounted}/>
+						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						<Header
 							leftContent={this.state.selectedMessage ? 
 							<Button transparent onPress={() => this.focusChat(false)} style={{width: 50}}>
@@ -109,7 +115,7 @@ class MessagesPage extends React.Component {
 								<Text style={styles.header}>Invite</Text>
 							</Button>
 							 : 
-							<Button transparent onPress={() => this.setState({selectingUser: true})} style={{width: 50}}>
+							<Button transparent onPress={() => this.setState({selectingUser: true})} style={{width: 60}}>
 								<Text style={styles.header}>+</Text>
 							</Button>}
 							/>

@@ -36,6 +36,9 @@ export default class ProfilePage extends React.Component {
     return (<Container>
               <NavigationEvents onWillFocus={this.componentFocus}/>
              <Header 
+              leftContent={this.state.userID === this.props.user.id ? <Button transparent onPress={this.props.signOut} style={{width: 50}}>
+                      <Icon name="sign-out" type="FontAwesome" style={{fontSize: 20}}/>
+                    </Button> : false}
 							middleTitle={def(this.state.userData.name, "Profile")}
 							rightContent={<Button transparent>
 															<Icon name="user" type="FontAwesome" style={{fontSize: 20}}/>
@@ -79,7 +82,7 @@ export default class ProfilePage extends React.Component {
 
 const styles = StyleSheet.create({
   infoContainer: {
-    height: 70,
+    height: 75,
     backgroundColor: "rgba(238, 238, 238, 0.3)",
   },
   flex: {
