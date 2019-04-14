@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationEvents } from "react-navigation";
-import { Container, Content, Text, Icon, Button } from 'native-base';
+import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
 import { def, transaction, api, syncUsers } from "./baseFunctions";
 import Header from "./UI/Header";
 export default class ProfilePage extends React.Component {
@@ -53,6 +53,18 @@ export default class ProfilePage extends React.Component {
                   {def(this.state.userData.id)}
               </Text>
             </View>
+            <Grid style={styles.infoContainer}>
+              <Col style={styles.flex}>
+                <Text style={styles.bigText}>0</Text>
+                <Text>Posts</Text>
+              </Col>
+              <Col style={styles.flex}>
+                <Icon name="heart-o" type="FontAwesome"/>
+                <Text>Like</Text>
+              </Col>
+            </Grid>
+
+            
             <Text>
                 Posts here..
             </Text>
@@ -62,6 +74,18 @@ export default class ProfilePage extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  infoContainer: {
+    height: 70,
+    backgroundColor: "rgba(238, 238, 238, 0.3)",
+  },
+  flex: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bigText: {
+    fontSize: 28,
+  },
   topBG: {
     backgroundColor: "#efefef",
     height: 120,

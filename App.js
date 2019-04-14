@@ -15,7 +15,7 @@ export default class App extends React.Component {
         id: false,
         name: false
       },
-      db: SQLite.openDatabase('db.db')
+      db: SQLite.openDatabase('data.db')
     };
   }
   componentDidMount()
@@ -33,7 +33,6 @@ export default class App extends React.Component {
   }
 
   updateState = (key, value) => {
-    console.log("Set state", key, value);
     let newState = {};
     newState[key] = value;
     this.setState(newState);

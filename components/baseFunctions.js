@@ -1,8 +1,8 @@
-export async function api(path = "users", params = {}, method = "GET", payload = false)
+export async function api(endpoint = "users", params = {}, method = "GET", payload = false)
 {
 	try {
 		let paramVar = swaggerParams(params).join("&");
-		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + path + "?" + paramVar, {
+		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
 	        headers: {
@@ -36,6 +36,26 @@ export async function syncUsers(db)
 	   }
 	 }
 }
+
+export async function syncMessages(db)
+{
+	let data = await transaction(db, 'SELECT id FROM messages ORDER BY id DESC LIMIT 1');
+    let extraParams = data.length > 0 ? {id: "gt." + data._array[0].id} : {};
+	let newMessages = await api("messages");
+
+	for(let i = 0; i < newMessages.length; i++)
+	{
+		let message = newMessages[i];
+		let messageCheck = await transaction(db, 'SELECT id FROM messages WHERE id=?', [message.id]);
+		if(messageCheck.length === 0)
+		{
+			transaction(db, 'insert into messages (id, sender, reciever, body, stamp) values (?, ?, ?, ?, ?)', [message.id, message.sender, message.reciever, message.body, message.stamp]);
+		}
+	}
+
+}
+
+
 
 
 export function def(val, fallback = "")

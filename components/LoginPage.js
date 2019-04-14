@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import { Container, Header, Content, Form, Item, Input, Button } from 'native-base';
-import {api, query, transaction, syncUsers} from "./baseFunctions";
+import {api, syncMessages, transaction, syncUsers} from "./baseFunctions";
 import uuid from "uuid/v4";
 
 export default class LoginPage extends React.Component {
@@ -17,42 +17,9 @@ export default class LoginPage extends React.Component {
   componentWillMount()
   {
     syncUsers(this.props.db);
-    //this.updateUsers();
   }
   
 
-  syncData = async () => {
-    let messages = await api("messages");
-    
-    try {
-
-      this.props.db.transaction(tx => {
-        tx.executeSql('insert into items (done, value) values (0, ?)', ["Hejsa"]);
-        tx.executeSql('select * from items', [], (_, { rows }) =>
-          console.log("Haaaalloooew", JSON.stringify(rows))
-        );
-        
-        console.log("inserting", messages, tx, this.props.db);
-        //let message = messages[0];
-        messages.map(message => tx.executeSql('insert into messages (sender, reciever, body, stamp) values (?, ?, ?, ?)', [message.sender, message.reciever, message.body, message.stamp]));
-        //tx.executeSql('insert into messages (sender, reciever, body, stamp) values (?, ?, ?, ?)', [message.sender, message.reciever, message.body, message.stamp]);
-        //tx.executeSql('INSERT INTO messages (sender, receiver, body, stamp) VALUES ("Test", "Test", "Test", "Test")', [], (a, b) => console.log("Insert result", a, b));
-        tx.executeSql('select * from messages', [], (_, { rows }) =>
-          console.log("22Haaaalloooew", JSON.stringify(rows))
-        );
-        /*let message = messages[0];
-        tx.executeSql('INSERT INTO messages (sender, receiver, body, stamp) VALUES (?, ?, ?, ?)', [message.sender, message.receiver, message.body, message.body], (a, b) => console.log("Insert result", a, b));
-        //messages.map(message => );
-        setTimeout(() => {
-          tx.executeSql('SELECT * FROM messages', [], (_, { rows }) => console.log("Data", rows));
-          
-        }, 500);*/
-      });
-    } catch(e)
-    {
-      console.log(e);
-    }
-  }
   createUser = async () => {
     let id = uuid();
     let data = await api("users", {}, "POST", {id, name: this.state.username});
@@ -69,7 +36,7 @@ export default class LoginPage extends React.Component {
     if(data.length > 0)
     {
       this.props.updateData("user", data[0]);
-      this.syncData();
+      syncMessages(this.props.db);
     }else{
       alert("User not found!");
     }
