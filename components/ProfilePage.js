@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
-import { def, transaction, api, syncUsers } from "./baseFunctions";
+import { def, transaction, api, syncUsers, navigate } from "./baseFunctions";
 import Header from "./UI/Header";
 export default class ProfilePage extends React.Component {
   constructor(props)
@@ -54,6 +54,10 @@ export default class ProfilePage extends React.Component {
               </Text>
             </View>
             <Grid style={styles.infoContainer}>
+              <Col style={styles.flex} onPress={() => navigate("Messages", this, {id: this.state.userData.id})}>
+                <Icon name="envelope" type="FontAwesome"/>
+                <Text>Message</Text>
+              </Col>
               <Col style={styles.flex}>
                 <Text style={styles.bigText}>0</Text>
                 <Text>Posts</Text>

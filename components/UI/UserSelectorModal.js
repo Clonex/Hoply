@@ -34,11 +34,11 @@ export default class UserSelectorModal extends React.Component {
   render() {
     return (<Container>
       <Header
-        leftContent={<Button transparent onPress={() => this.props.select(false)}>
+        leftContent={<Button transparent onPress={() => this.props.select(false)} style={{width: 50}}>
           <Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
         </Button>}
         middleTitle={"Users"}
-        rightContent={<Button transparent><Text style={styles.header}>Select</Text></Button>}
+        rightContent={<Button transparent style={{width: 50}}><Text style={styles.header}>Select</Text></Button>}
         />
         <ScrollView>
           <List>

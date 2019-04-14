@@ -5384,7 +5384,7 @@ Lockfile:
 
 Trace: 
   Error: Command failed.
-  Exit code: 1
+  Exit code: 1073807364
   Command: C:\WINDOWS\system32\cmd.exe
   Arguments: /d /s /c expo start
   Directory: F:\AppServ\www\SDU\Hoply

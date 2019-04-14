@@ -2,6 +2,7 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 {
 	try {
 		let paramVar = swaggerParams(params).join("&");
+		console.log("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
 		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
@@ -76,16 +77,16 @@ export async function syncUsers(db)
 export async function syncMessages(db)
 {
 	let data = await transaction(db, 'SELECT id FROM messages ORDER BY id DESC LIMIT 1');
-    let extraParams = data.length > 0 ? {id: "gt." + data._array[0].id} : {};
-	let newMessages = await api("messages");
+	let extraParams = data.length > 0 ? {id: {t: ">", v: data._array[0].id}} : {};
 
+	let newMessages = await api("messages", extraParams);
 	for(let i = 0; i < newMessages.length; i++)
 	{
 		let message = newMessages[i];
 		let messageCheck = await transaction(db, 'SELECT id FROM messages WHERE id=?', [message.id]);
 		if(messageCheck.length === 0)
 		{
-			transaction(db, 'insert into messages (id, sender, reciever, body, stamp) values (?, ?, ?, ?, ?)', [message.id, message.sender, message.reciever, message.body, message.stamp]);
+			transaction(db, 'insert into messages (id, sender, receiver, body, stamp) values (?, ?, ?, ?, ?)', [message.id, message.sender, message.receiver, message.body, message.stamp]);
 		}
 	}
 

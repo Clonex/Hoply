@@ -26,8 +26,9 @@ export default class Header extends React.Component {
         }
     }
     searchr = async (text) => {
-        let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
-				//console.log(results);
+			//let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
+				let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
+				console.log(results);
 				this.setState({results: results._array.reverse(), currSearch: text});
     }
   render() {
@@ -72,7 +73,7 @@ export default class Header extends React.Component {
         </Head>
         {
             this.state.searching ?
-                <View style={{width: "100%", "height": "90%", position: "absolute", top: "10%", left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
+                <View style={{width: "100%", "height": "90%", position: "absolute", top: "11%", left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
 									<ScrollView>
 									<List>
 										{

@@ -1,42 +1,61 @@
 import React from 'react';
+import { NavigationEvents } from "react-navigation";
 import { StyleSheet, TextInput, View, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button } from 'native-base';
+import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item} from 'native-base';
 import Header from "./UI/Header";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate} from "./baseFunctions";
+import {api, navigate, syncMessages, transaction} from "./baseFunctions";
 class MessagesPage extends React.Component {
 	constructor()
 	{
 		super();
-		this.state = {
+		this.blankState = {
 			selectedMessage: false,
 			messages: [],
 			currMsg: "",
 			selectingUser: false,
-		}
+		};
+		this.state = {...this.blankState};
 	}
-	componentWillMount()
+	mounted = async (payload) =>
 	{
-		this.syncMessages();
+		console.log("Mounted", payload);
+		let state = {...this.blankState};
+		if(payload.action.params)
+		{
+			state.selectedMessage = payload.action.params.id;
+		}
+		this.setState(state);
+		await this.dbMessages();
+		await syncMessages(this.props.db);
+		await this.dbMessages();
 	}
-	syncMessages = async () => {
-		let messages = await api("messages");
-		this.setState({messages});
+
+	dbMessages = async () => {
+		let data = await transaction(this.props.db, "SELECT * FROM messages ORDER BY id DESC");
+		this.setState({
+			messages: data._array
+		});
 	}
+
 	getMessages = (to, senderID) => {
 		let ret = this.state.messages.filter(message => (message.receiver === senderID && message.sender === to) || (message.receiver === to && message.sender === senderID));
-		return ret;
+		return ret.reverse();
 	}
 	sendMessage = async () => {
-		let data = await api("messages", {}, "POST", {
-			sender: this.props.user.id,
-			body: this.state.currMsg,
-			receiver: this.state.selectedMessage
-		});
-		if(data === 200 || data === 201)
+		if(this.state.currMsg.length > 0)
 		{
-			this.setState({currMsg: ""});
-			this.syncMessages();
+			let data = await api("messages", {}, "POST", {
+				sender: this.props.user.id,
+				body: this.state.currMsg,
+				receiver: this.state.selectedMessage
+			});
+			if(data === 200 || data === 201)
+			{
+				this.setState({currMsg: ""});
+				await syncMessages(this.props.db);
+				await this.dbMessages();
+			}
 		}
 	}
 	focusChat = (id) => {
@@ -71,9 +90,10 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		return (<Container>
+						<NavigationEvents onWillFocus={this.mounted}/>
 						<Header
 							leftContent={this.state.selectedMessage ? 
-							<Button transparent onPress={() => this.focusChat(false)}>
+							<Button transparent onPress={() => this.focusChat(false)} style={{width: 50}}>
 								<Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
 							</Button> : false}
 							middleContent={this.state.selectedMessage ? 
@@ -85,17 +105,17 @@ class MessagesPage extends React.Component {
 														}
 							middleTitle={this.state.selectedMessage ? this.state.selectedMessage : "Messages"}
 							rightContent={this.state.selectedMessage ? 
-							<Button transparent>
+							<Button transparent style={{width: 50}}>
 								<Text style={styles.header}>Invite</Text>
 							</Button>
 							 : 
-							<Button transparent onPress={() => this.setState({selectingUser: true})}>
+							<Button transparent onPress={() => this.setState({selectingUser: true})} style={{width: 50}}>
 								<Text style={styles.header}>+</Text>
 							</Button>}
 							/>
         	{
         		this.state.selectedMessage ? 
-						<KeyboardAvoidingView behavior="height" keyboardVerticalOffset={10} enabled>
+						<KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={30} enabled>
 							<View style={{height: "90%", overflow: "scroll"}}>
 								<ScrollView ref="scrollr" onContentSizeChange={(contentWidth, contentHeight)=>{        
 										this.refs.scrollr.scrollToEnd({animated: false});
@@ -117,15 +137,24 @@ class MessagesPage extends React.Component {
 								</ScrollView>
 							</View>
 							<View style={{ flexDirection: "row", flex: 1, justifyContent: 'space-between', padding: 5 }}>
-									<TextInput
-											style={{height: 40, width: "85%", borderColor: 'rgba(6, 6, 6, 0.29)', borderWidth: 1,}}
+									{/*<Input
+											style={{height: 40, width: "85%",}}
 											onChangeText={(text) => this.setState({currMsg: text})}
 											value={this.state.currMsg}
 											onSubmitEditing={this.sendMessage}
 									/>
 									<Button light onPress={this.sendMessage} style={{height: 40, width: "15%", flex: 1, justifyContent: "center", alignContent: "center"}}>
 										<Icon name="paper-plane" type="FontAwesome"/>
-									</Button>
+									</Button>*/}
+									<Item rounded style={{width: "100%", height: 40}}>
+										<Input 
+											placeholder='Message..'
+											onChangeText={(text) => this.setState({currMsg: text})}
+											value={this.state.currMsg}
+											onSubmitEditing={this.sendMessage}
+											/>
+										<Icon onPress={this.sendMessage} active name="paper-plane" type="FontAwesome" />
+									</Item>
 							</View>
 						</KeyboardAvoidingView>
         		: <List>
