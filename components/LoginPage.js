@@ -3,6 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 
 import { Container, Header, Content, Form, Item, Input, Button } from 'native-base';
 import {api, syncMessages, transaction, syncUsers} from "./baseFunctions";
+
 import uuid from "uuid/v4";
 
 export default class LoginPage extends React.Component {

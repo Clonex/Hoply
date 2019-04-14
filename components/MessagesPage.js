@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationEvents } from "react-navigation";
-import { StyleSheet, TextInput, View, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item} from 'native-base';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row} from 'native-base';
 import Header from "./UI/Header";
 import UserSelectorModal from "./UI/UserSelectorModal";
 import {api, navigate, syncMessages, transaction} from "./baseFunctions";
@@ -163,20 +163,33 @@ class MessagesPage extends React.Component {
 									</Item>
 							</View>
 						</KeyboardAvoidingView>
-        		: <List>
-								{
-									unique.map((chat, key) => <ListItem onPress={() => this.focusChat(chat)} key={key}>
-											<Left>
-												<Text>{chat}</Text>
-											</Left>
-											<Right>
-												<Icon name="arrow-forward" />
-											</Right>
-										</ListItem>)
-								}
-		            
-		            
-		          </List>
+        		: <ScrollView>
+								<List>
+									{
+										unique.map((chat, key) => {
+											let latestMsg = this.getMessages(chat, this.props.user.id);
+											console.log(chat, latestMsg);
+											return (<ListItem onPress={() => this.focusChat(chat)} key={key}>
+												<Left>
+													<Grid>
+														<Row>
+															<Text style={{height: 20}}>{chat}</Text>
+														</Row>
+														<Row style={{marginTop: 5}}>
+															<Text style={{fontSize: 10}}>{latestMsg[0].body.length > 40 ? (latestMsg[0].body.substring(0, 40) + "..") : latestMsg[0].body}</Text>
+														</Row>
+													</Grid>
+													
+													
+												</Left>
+												<Right>
+													<Icon name="arrow-forward" />
+												</Right>
+											</ListItem>);
+										})
+									}
+		          	</List>
+							</ScrollView>
         	}
       </Container>);
   }

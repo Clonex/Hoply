@@ -25,6 +25,7 @@ export default class Header extends React.Component {
             });
         }
     }
+    
     searchr = async (text) => {
 			//let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
 				let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
@@ -41,6 +42,7 @@ export default class Header extends React.Component {
       {
         middleContent = (<Item rounded style={styles.searchItem}>
                             <Input placeholder='Search' ref="searchInp" onChangeText={this.searchr} onFocus={() => this.setState({searching: true})} onBlur={this.blurLogic}/>
+                            <Text onPress={() => this.setState({currSearch: "", searching: false})} style={{fontSize: 25, width: 30, height: 32, display: "none"}}>×</Text>
                         </Item>);
         if(this.state.searching)
         {
