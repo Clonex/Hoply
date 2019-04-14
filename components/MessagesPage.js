@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, TextInput, View, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button } from 'native-base';
 import Header from "./UI/Header";
+import UserSelectorModal from "./UI/UserSelectorModal";
 import {api, navigate} from "./baseFunctions";
 class MessagesPage extends React.Component {
 	constructor()
@@ -11,6 +12,7 @@ class MessagesPage extends React.Component {
 			selectedMessage: false,
 			messages: [],
 			currMsg: "",
+			selectingUser: false,
 		}
 	}
 	componentWillMount()
@@ -53,7 +55,21 @@ class MessagesPage extends React.Component {
 				unique.push(id);
 			}
 		}); 
-
+		if(this.state.selectingUser)
+		{
+			return <UserSelectorModal 
+								db={this.props.db}
+								user={this.props.user}
+								select={(selected) => {
+									if(!selected)
+									{
+										this.setState({selectingUser: false});
+									}else{
+										this.setState({selectingUser: false, selectedMessage: selected});
+									}
+								}}
+							/>;
+		}
 		return (<Container>
 						<Header
 							leftContent={this.state.selectedMessage ? 
@@ -68,12 +84,19 @@ class MessagesPage extends React.Component {
 															<Text>Messages</Text>
 														}
 							middleTitle={this.state.selectedMessage ? this.state.selectedMessage : "Messages"}
-							rightContent={this.state.selectedMessage ? <Button transparent><Text style={styles.header}>Invite</Text></Button> : <Button transparent><Text style={styles.header}>+</Text></Button>}
+							rightContent={this.state.selectedMessage ? 
+							<Button transparent>
+								<Text style={styles.header}>Invite</Text>
+							</Button>
+							 : 
+							<Button transparent onPress={() => this.setState({selectingUser: true})}>
+								<Text style={styles.header}>+</Text>
+							</Button>}
 							/>
         	{
         		this.state.selectedMessage ? 
-						<KeyboardAvoidingView behavior="position" keyboardVerticalOffset={-28} enabled>
-							<View style={{height: "92%", overflow: "scroll"}}>
+						<KeyboardAvoidingView behavior="height" keyboardVerticalOffset={10} enabled>
+							<View style={{height: "90%", overflow: "scroll"}}>
 								<ScrollView ref="scrollr" onContentSizeChange={(contentWidth, contentHeight)=>{        
 										this.refs.scrollr.scrollToEnd({animated: false});
 								}}>
@@ -98,8 +121,9 @@ class MessagesPage extends React.Component {
 											style={{height: 40, width: "85%", borderColor: 'rgba(6, 6, 6, 0.29)', borderWidth: 1,}}
 											onChangeText={(text) => this.setState({currMsg: text})}
 											value={this.state.currMsg}
+											onSubmitEditing={this.sendMessage}
 									/>
-									<Button light onPress={() => this.sendMessage()} style={{height: 40, width: "15%", flex: 1, justifyContent: "center", alignContent: "center"}}>
+									<Button light onPress={this.sendMessage} style={{height: 40, width: "15%", flex: 1, justifyContent: "center", alignContent: "center"}}>
 										<Icon name="paper-plane" type="FontAwesome"/>
 									</Button>
 							</View>

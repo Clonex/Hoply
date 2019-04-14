@@ -23,6 +23,10 @@ export default class App extends React.Component {
     this.state.db.transaction(tx => {
       tx.executeSql('create table if not exists messages (id integer primary key not null, sender text, reciever text, body text, stamp text);');
       tx.executeSql('create table if not exists users (id text primary key not null, name text, stamp text);');
+      tx.executeSql('create table if not exists follows (follower text, followee text, stamp text);');
+
+
+      //follower, followee, stamp
     });
 
     /*this.state.db.transaction(tx => {

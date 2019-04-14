@@ -17,6 +17,42 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 	}
 }
 
+export async function syncBasic(db, type, WHERE = "id")
+{
+	/*
+      Y NO UNIX TIMESTAMP! D:
+      let data = await transaction(db, 'SELECT stamp FROM users ORDER BY id DESC LIMIT 1');
+      let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
+      */
+	 let newUsers = await api(type);
+	 //Delete deleted data
+	 if(newUsers.length > 0)
+	 {
+		 let uIDs = newUsers.map(user => ('"' + user[WHERE] + '"')).join(",");
+		 await transaction(db, 'DELETE FROM ' + type + ' WHERE ' + WHERE + ' NOT IN (' + uIDs + ')')
+	}else{
+		transaction(db, 'DELETE FROM ' + type);
+	}
+	//Add new data
+	 for(let i = 0; i < newUsers.length; i++)
+	 {
+	   let user = newUsers[i];
+	   let userCheck = await transaction(db, 'SELECT id FROM ' + type + ' WHERE ' + WHERE + ' = ?', [user[WHERE]]);
+	   if(userCheck.length === 0)
+	   {
+		   switch(type)
+		   {
+			case "users":
+				transaction(db, 'insert into users (id, name, stamp) values (?, ?, ?)', [user.id, user.name, user.stamp]);
+			break;
+			case "follows":
+				transaction(db, 'insert into follows (follower, followee, stamp) values (?, ?, ?)', [user.follower, user.followee, user.stamp]);
+			break;
+		   }
+		 
+	   }
+	 }
+}
 export async function syncUsers(db)
 {
 	/*
