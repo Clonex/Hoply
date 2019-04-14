@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, TextInput, View, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Container, Content, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button } from 'native-base';
 import Header from "./UI/Header";
-import {api} from "./baseFunctions";
+import {api, navigate} from "./baseFunctions";
 class MessagesPage extends React.Component {
 	constructor()
 	{
@@ -23,7 +23,6 @@ class MessagesPage extends React.Component {
 	}
 	getMessages = (to, senderID) => {
 		let ret = this.state.messages.filter(message => (message.receiver === senderID && message.sender === to) || (message.receiver === to && message.sender === senderID));
-		console.log("Messages", ret);
 		return ret;
 	}
 	sendMessage = async () => {
@@ -32,7 +31,6 @@ class MessagesPage extends React.Component {
 			body: this.state.currMsg,
 			receiver: this.state.selectedMessage
 		});
-		console.log("SendtMSG", data);
 		if(data === 200 || data === 201)
 		{
 			this.setState({currMsg: ""});
@@ -62,6 +60,13 @@ class MessagesPage extends React.Component {
 							<Button transparent onPress={() => this.focusChat(false)}>
 								<Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
 							</Button> : false}
+							middleContent={this.state.selectedMessage ? 
+															<Text onPress={() => navigate("Profile", this, {id: this.state.selectedMessage})}>
+																{this.state.selectedMessage}
+															</Text>
+															:
+															<Text>Messages</Text>
+														}
 							middleTitle={this.state.selectedMessage ? this.state.selectedMessage : "Messages"}
 							rightContent={this.state.selectedMessage ? <Button transparent><Text style={styles.header}>Invite</Text></Button> : <Button transparent><Text style={styles.header}>+</Text></Button>}
 							/>

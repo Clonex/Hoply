@@ -4,6 +4,7 @@ import { Icon } from 'native-base';
 
 import MessagesPage from "./MessagesPage";
 import FeedPage from "./FeedPage";
+import ProfilePage from "./ProfilePage";
 
 export default class SiteHandler extends React.Component {
     iconHandler = (focused, tintColor, iconName, iconType) => <Icon name={iconName} style={focused ? {color: tintColor} : {}} type={iconType}/>
@@ -22,7 +23,7 @@ export default class SiteHandler extends React.Component {
             }
         },
         Profile: {
-            screen: props => <MessagesPage {...props} {...this.props}/>,
+            screen: props => <ProfilePage {...props} {...this.props}/>,
             navigationOptions: {
                 tabBarIcon: ({ focused, tintColor }) => this.iconHandler(focused, tintColor, "person")
             }
