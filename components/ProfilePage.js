@@ -100,6 +100,10 @@ export default class ProfilePage extends React.Component {
                 <Text style={styles.bigText}>0</Text>
                 <Text>Posts</Text>
               </Col>
+              <Col style={styles.flex}>
+                <Text style={styles.bigText}>0</Text>
+                <Text>Likes</Text>
+              </Col>
               <Col style={styles.flex} onPress={() => this.like(!this.state.liked)}>
                 <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome"/>
                 <Text>{this.state.liked ? "Unlike" : "Like"}</Text>
