@@ -47,7 +47,7 @@ export default class LoginPage extends React.Component {
         <Content contentContainerStyle={styles.content}>
           <Form>
             <Item>
-              <Input placeholder="Username" onChangeText={(text) => this.setState({username: text})}/>
+              <Input placeholder="Username" onChangeText={(text) => this.setState({username: text})} onSubmitEditing={this.checkLogin}/>
             </Item>
             {/*<Item last>
               <Input placeholder="Password" />

@@ -19,19 +19,19 @@ export default class Cards extends React.Component {
           </Left>
         </CardItem>
         <CardItem cardBody>
-          <Image source={{uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjDI9yYzdvoWc-EgFeESp5hcy-WYhiNNZCuAxH4YKmenlu93nT'}} style={{height: 200, width: null, flex: 1}}/>
+          <Image source={{uri: 'https://assets.saatchiart.com/saatchi/315283/art/2701261/additional_bbb7245f37ac6539278837e140fd2804fd94a8b7-8.jpg'}} style={{height: 200, width: null, flex: 1}}/>
         </CardItem>
         <CardItem>
           <Left>
             <Button transparent>
               <Icon active name="thumbs-up" />
-              <Text>12 Likes</Text>
+              <Text>12</Text>
             </Button>
           </Left>
           <Body>
             <Button transparent>
               <Icon active name="chatbubbles" />
-              <Text>4 Comments</Text>
+              <Text>4</Text>
             </Button>
           </Body>
           <Right>
