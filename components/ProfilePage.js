@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
-import { def, transaction, api, syncUsers, navigate } from "./baseFunctions";
+import { def, transaction, api, syncBasic, navigate } from "./baseFunctions";
 import Header from "./UI/Header";
 export default class ProfilePage extends React.Component {
   constructor(props)
@@ -10,15 +10,49 @@ export default class ProfilePage extends React.Component {
     super(props);
     this.state = {
       userID: props.navigation.state.params ? props.navigation.state.params.id : props.user.id,
-      userData: {}
+      userData: {},
+      liked: false,
     };
   }
   componentFocus = (payload) => {
     this.setState({
       userID: payload.action.params ? payload.action.params.id : this.props.user.id,
-      userData: {}
+      userData: {},
+      liked: false
     });
-    requestAnimationFrame(() => this.findUser());
+    requestAnimationFrame(async () => {
+      this.findUser();
+
+      await this.didLike();
+      await syncBasic(this.props.db, "follows", "stamp");
+      await this.didLike();
+    });
+  }
+  like = async (doLike) => {
+    if(doLike)
+    {
+      await api("follows", {}, "POST", {
+        follower: this.props.user.id,
+        followee: this.state.userID
+      });
+    }else{
+      await api("follows", {
+        follower: {
+          t: "=",
+          v: this.props.user.id
+        },
+        followee: {
+          t: "=",
+          v: this.state.userID
+        },
+      }, "DELETE");
+    }
+    await syncBasic(this.props.db, "follows", "stamp");
+    await this.didLike();
+  }
+  didLike = async () => {
+    let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
+    this.setState({liked: data.length > 0});
   }
   findUser = async () => {
     let data = await transaction(this.props.db, "SELECT * FROM users WHERE id = ?", [this.state.userID]);
@@ -28,11 +62,12 @@ export default class ProfilePage extends React.Component {
         userData: data._array[0]
       });
     }else{
-      await syncUsers(this.props.db);
+      await syncBasic(this.props.db, "users");
       this.findUser();
     }
   }
   render() {
+    
     return (<Container>
               <NavigationEvents onWillFocus={this.componentFocus}/>
              <Header 
@@ -65,13 +100,11 @@ export default class ProfilePage extends React.Component {
                 <Text style={styles.bigText}>0</Text>
                 <Text>Posts</Text>
               </Col>
-              <Col style={styles.flex}>
-                <Icon name="heart-o" type="FontAwesome"/>
-                <Text>Like</Text>
+              <Col style={styles.flex} onPress={() => this.like(!this.state.liked)}>
+                <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome"/>
+                <Text>{this.state.liked ? "Unlike" : "Like"}</Text>
               </Col>
             </Grid>
-
-            
             <Text>
                 Posts here..
             </Text>

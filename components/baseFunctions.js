@@ -2,7 +2,6 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 {
 	try {
 		let paramVar = swaggerParams(params).join("&");
-		console.log("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
 		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
@@ -37,18 +36,18 @@ export async function syncBasic(db, type, WHERE = "id")
 	//Add new data
 	 for(let i = 0; i < newUsers.length; i++)
 	 {
-	   let user = newUsers[i];
-	   let userCheck = await transaction(db, 'SELECT id FROM ' + type + ' WHERE ' + WHERE + ' = ?', [user[WHERE]]);
+		 let user = newUsers[i];
+		 let userCheck = await transaction(db, 'SELECT ' +  WHERE + ' FROM ' + type + ' WHERE ' + WHERE + ' = ?', [user[WHERE]]);
 	   if(userCheck.length === 0)
 	   {
 		   switch(type)
 		   {
-			case "users":
-				transaction(db, 'insert into users (id, name, stamp) values (?, ?, ?)', [user.id, user.name, user.stamp]);
-			break;
-			case "follows":
-				transaction(db, 'insert into follows (follower, followee, stamp) values (?, ?, ?)', [user.follower, user.followee, user.stamp]);
-			break;
+					case "users":
+						transaction(db, 'insert into users (id, name, stamp) values (?, ?, ?)', [user.id, user.name, user.stamp]);
+					break;
+					case "follows":
+						transaction(db, 'insert into follows (follower, followee, stamp) values (?, ?, ?)', [user.follower, user.followee, user.stamp]);
+					break;
 		   }
 		 
 	   }
