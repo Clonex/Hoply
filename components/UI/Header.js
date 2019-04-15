@@ -75,7 +75,7 @@ export default class Header extends React.Component {
         </Head>
         {
             this.state.searching ?
-                <View style={{width: "100%", "height": "90%", position: "absolute", top: "11%", left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
+                <View style={{width: "100%", "height": "90%", position: "absolute", top: 64, left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
 									<ScrollView>
 									<List>
 										{

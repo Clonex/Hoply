@@ -11,7 +11,7 @@ export default class LoginPage extends React.Component {
   {
     super();
     this.state = {
-      username: "Mich",
+      username: "",
       loading: false,
     };
   }
