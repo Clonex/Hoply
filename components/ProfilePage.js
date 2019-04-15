@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Alert } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
 import { def, transaction, api, syncBasic, navigate } from "./baseFunctions";
@@ -58,7 +58,7 @@ export default class ProfilePage extends React.Component {
     
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
-    
+
     this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count});
   }
   findUser = async () => {
@@ -73,6 +73,39 @@ export default class ProfilePage extends React.Component {
       this.findUser();
     }
   }
+  removeAccount = async () => {
+    await api("follows", {
+      followee: {
+        t: "=",
+        v: this.props.user.id
+      },
+    }, "DELETE");
+    await api("follows", {
+      follower: {
+        t: "=",
+        v: this.props.user.id
+      },
+    }, "DELETE");
+    await api("messages", {
+      sender: {
+        t: "=",
+        v: this.props.user.id
+      },
+    }, "DELETE");
+    await api("messages", {
+      receiver: {
+        t: "=",
+        v: this.props.user.id
+      },
+    }, "DELETE");
+    await api("users", {
+      id: {
+        t: "=",
+        v: this.props.user.id
+      },
+    }, "DELETE");
+    this.props.signOut();
+  }
   render() {
     
     return (<Container>
@@ -84,7 +117,19 @@ export default class ProfilePage extends React.Component {
                       <Icon name="sign-out" type="FontAwesome" style={{fontSize: 20}}/>
                     </Button> : false}
 							middleTitle={def(this.state.userData.name, "Profile")}
-							rightContent={<Button transparent>
+							rightContent={this.state.userID === this.props.user.id ? 
+                            <Button transparent onPress={() => Alert.alert(
+                              'Hoply',
+                              'Do you really want to delete your account?',
+                              [
+                                {text: 'Cancel', onPress: () => {}, style: 'cancel'},
+                                {text: 'OK', onPress: this.removeAccount},
+                              ],
+                              { cancelable: false }
+                            )}>
+															<Icon name="trash" type="FontAwesome" style={{fontSize: 20, color: "red"}}/>
+														</Button> : 
+                            <Button transparent onPress={() => navigate("Profile", this, {id: this.props.user.id})}>
 															<Icon name="user" type="FontAwesome" style={{fontSize: 20}}/>
 														</Button>}
                 

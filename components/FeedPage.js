@@ -8,7 +8,6 @@ import Cards from "./UI/Cards";
 
 export default class FeedPage extends React.Component {
   render() {
-    console.log("Feed page", this.props);
     return (<Container>
              <Header 
               middleSearch={true}
