@@ -22,15 +22,18 @@ export default class LoginPage extends React.Component {
   
 
   createUser = async () => {
-    let id = uuid();
-    let data = await api("users", {}, "POST", {id, name: this.state.username});
-    if(data === 200 || data === 201)
+    let userCheck = await api("users", {name: {t: "=", v: this.state.username}});
+    if(userCheck.length === 0)
     {
-      this.checkLogin();
+      let id = uuid();
+      let data = await api("users", {}, "POST", {id, name: this.state.username});
+      if(data === 200 || data === 201)
+      {
+        this.checkLogin();
+      }
     }else{
       alert("Username is already in use!");
     }
-    console.log(data);
   }
   checkLogin = async () => {
     let data = await api("users", {name: {t: "=", v: this.state.username}});
