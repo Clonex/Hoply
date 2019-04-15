@@ -8,24 +8,26 @@ export default class ProfilePage extends React.Component {
   constructor(props)
   {
     super(props);
-    this.state = {
+    this.blankState = {
       userID: props.navigation.state.params ? props.navigation.state.params.id : props.user.id,
       userData: {},
       liked: false,
+      follows: 0,
+      following: 0,
+      posts: 0,
     };
+    this.state = {...this.blankState};
   }
   componentFocus = (payload) => {
-    this.setState({
-      userID: payload.action.params ? payload.action.params.id : this.props.user.id,
-      userData: {},
-      liked: false
-    });
+    let state = {...this.blankState};
+    state.userID = payload.action.params ? payload.action.params.id : this.props.user.id;
+    this.setState(state);
     requestAnimationFrame(async () => {
       this.findUser();
 
-      await this.didLike();
+      await this.getDBinfo();
       await syncBasic(this.props.db, "follows", "stamp");
-      await this.didLike();
+      await this.getDBinfo();
     });
   }
   like = async (doLike) => {
@@ -48,11 +50,16 @@ export default class ProfilePage extends React.Component {
       }, "DELETE");
     }
     await syncBasic(this.props.db, "follows", "stamp");
-    await this.didLike();
+    await this.getDBinfo();
   }
-  didLike = async () => {
+  getDBinfo = async () => {
     let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
-    this.setState({liked: data.length > 0});
+
+    
+    let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
+    let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
+    
+    this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count});
   }
   findUser = async () => {
     let data = await transaction(this.props.db, "SELECT * FROM users WHERE id = ?", [this.state.userID]);
@@ -70,6 +77,8 @@ export default class ProfilePage extends React.Component {
     
     return (<Container>
               <NavigationEvents onWillFocus={this.componentFocus}/>
+              <View style={{width: "100%", height: 250}}>
+
              <Header 
               leftContent={this.state.userID === this.props.user.id ? <Button transparent onPress={this.props.signOut} style={{width: 50}}>
                       <Icon name="sign-out" type="FontAwesome" style={{fontSize: 20}}/>
@@ -82,7 +91,6 @@ export default class ProfilePage extends React.Component {
               db={this.props.db}
               navigation={this.props.navigation}
 							/>
-        <Content>
             <View style={styles.topBG}>
               <Text style={styles.bigTitle}>
                   {def(this.state.userData.name)}
@@ -93,22 +101,28 @@ export default class ProfilePage extends React.Component {
             </View>
             <Grid style={styles.infoContainer}>
               <Col style={styles.flex} onPress={() => navigate("Messages", this, {id: this.state.userData.id})}>
-                <Icon name="envelope" type="FontAwesome"/>
-                <Text>Message</Text>
+                <Icon name="envelope" type="FontAwesome" style={styles.infoText}/>
+                <Text style={styles.infoSubText}>Message</Text>
               </Col>
               <Col style={styles.flex}>
-                <Text style={styles.bigText}>0</Text>
-                <Text>Posts</Text>
+                <Text style={styles.infoText}>{this.state.posts}</Text>
+                <Text style={styles.infoSubText}>Posts</Text>
               </Col>
               <Col style={styles.flex}>
-                <Text style={styles.bigText}>0</Text>
-                <Text>Likes</Text>
+                <Text style={styles.infoText}>{this.state.follows}</Text>
+                <Text style={styles.infoSubText}>Likes</Text>
+              </Col>
+              <Col style={styles.flex}>
+                <Text style={styles.infoText}>{this.state.following}</Text>
+                <Text style={styles.infoSubText}>Liked</Text>
               </Col>
               <Col style={styles.flex} onPress={() => this.like(!this.state.liked)}>
-                <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome"/>
-                <Text>{this.state.liked ? "Unlike" : "Like"}</Text>
+                <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome" style={styles.infoText}/>
+                <Text style={styles.infoSubText}>{this.state.liked ? "Unlike" : "Like"}</Text>
               </Col>
             </Grid>
+              </View>
+        <Content>
             <Text>
                 Posts here..
             </Text>
@@ -118,8 +132,14 @@ export default class ProfilePage extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  infoText: {
+    fontSize: 15,
+  },
+  infoSubText: {
+    fontSize: 13,
+  },
   infoContainer: {
-    height: 75,
+    height: 48,
     backgroundColor: "rgba(238, 238, 238, 0.3)",
   },
   flex: {

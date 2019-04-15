@@ -23,7 +23,6 @@ class MessagesPage extends React.Component {
 	}
 	mounted = async (payload) =>
 	{
-		console.log("Mounted", payload);
 		let state = {...this.blankState};
 		if(payload.action.params)
 		{
@@ -38,7 +37,12 @@ class MessagesPage extends React.Component {
 	}
 
 	dbMessages = async () => {
-		let data = await transaction(this.props.db, "SELECT * FROM messages ORDER BY id DESC");
+		let data = await transaction(this.props.db, `SELECT 
+																											*, 
+																											(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
+																											(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
+																									FROM messages 
+																									ORDER BY id DESC`);
 		this.setState({
 			messages: data._array
 		});
@@ -64,6 +68,9 @@ class MessagesPage extends React.Component {
 			}
 		}
 	}
+	senderOrRecieverName = (uID, message) => {
+		return message.sender === uID ? message.senderName : message.receiverName;
+	}
 	focusChat = (id) => {
 		this.setState({
 			selectedMessage: id,
@@ -73,6 +80,7 @@ class MessagesPage extends React.Component {
   render() {
 		let myMessages = this.state.messages.filter(message => message.sender === this.props.user.id || message.receiver === this.props.user.id);
 		let unique = [];
+		let userMessages = this.getMessages(this.state.selectedMessage, this.props.user.id);
 		myMessages.forEach(message => {
 			let id = message.sender === this.props.user.id ? message.receiver : message.sender;
 			if(unique.indexOf(id) === -1)
@@ -95,6 +103,7 @@ class MessagesPage extends React.Component {
 								}}
 							/>;
 		}
+		let userTitle = userMessages.length > 0 ? this.senderOrRecieverName(this.state.selectedMessage, userMessages[0]) : this.state.selectedMessage;
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						<Header
@@ -104,7 +113,7 @@ class MessagesPage extends React.Component {
 							</Button> : false}
 							middleContent={this.state.selectedMessage ? 
 															<Text onPress={() => navigate("Profile", this, {id: this.state.selectedMessage})}>
-																{this.state.selectedMessage}
+																{userTitle}
 															</Text>
 															:
 															<Text>Messages</Text>
@@ -127,7 +136,8 @@ class MessagesPage extends React.Component {
 										this.refs.scrollr.scrollToEnd({animated: false});
 								}}>
 								{
-									this.getMessages(this.state.selectedMessage, this.props.user.id).map((message, key) => <Card style={[styles.messageCard, styles[message.sender === this.props.user.id ? "meCard" : "otherCard"]]} key={key}>
+									userMessages.map((message, key) => 
+									<Card style={[styles.messageCard, styles[(message.sender === this.props.user.id ? "meCard" : "otherCard")]]} key={key}>
 										<CardItem bordered>
 											<Body>
 												<Text>
@@ -173,7 +183,7 @@ class MessagesPage extends React.Component {
 												<Left>
 													<Grid>
 														<Row>
-															<Text style={{height: 20}}>{chat}</Text>
+															<Text style={{height: 20}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
 														</Row>
 														<Row style={{marginTop: 5}}>
 															<Text style={{fontSize: 10}}>{latestMsg[0].body.length > 40 ? (latestMsg[0].body.substring(0, 40) + "..") : latestMsg[0].body}</Text>
