@@ -4,7 +4,9 @@ import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native
 import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row} from 'native-base';
 import Header from "./UI/Header";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate, syncMessages, transaction} from "./baseFunctions";
+import {api, navigate, syncMessages, transaction, ISOparser} from "./baseFunctions";
+
+
 class MessagesPage extends React.Component {
 	constructor()
 	{
@@ -104,6 +106,7 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		let userTitle = userMessages.length > 0 ? this.senderOrRecieverName(this.state.selectedMessage, userMessages[0]) : this.state.selectedMessage;
+		console.log(userMessages);
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						<Header
@@ -146,7 +149,7 @@ class MessagesPage extends React.Component {
 											</Body>
 										</CardItem>
 										<CardItem footer>
-											<Text>{message.sender}</Text>
+											<Text>{message.sender} - {ISOparser(message.stamp)}</Text>
 										</CardItem>
 									</Card>)
 								}
@@ -178,12 +181,16 @@ class MessagesPage extends React.Component {
 									{
 										unique.map((chat, key) => {
 											let latestMsg = this.getMessages(chat, this.props.user.id);
-											console.log(chat, latestMsg);
 											return (<ListItem onPress={() => this.focusChat(chat)} key={key}>
 												<Left>
 													<Grid>
 														<Row>
-															<Text style={{height: 20}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
+															<Left>
+																<Text style={{height: 20}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
+															</Left>
+															<Right style={{alignSelf: 'stretch'}}>
+																<Text style={{height: 20, fontSize: 10, textAlign: "center", flex: 1}} textAlign="right">{ISOparser(latestMsg[0].stamp)}</Text>
+															</Right>
 														</Row>
 														<Row style={{marginTop: 5}}>
 															<Text style={{fontSize: 10}}>{latestMsg[0].body.length > 40 ? (latestMsg[0].body.substring(0, 40) + "..") : latestMsg[0].body}</Text>

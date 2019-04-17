@@ -16,6 +16,12 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		return false;
 	}
 }
+//.fromNow();
+import moment from "moment";
+export function ISOparser(ISOstring)
+{
+	return moment(ISOstring).fromNow();
+}
 
 export async function syncBasic(db, type, WHERE = "id")
 {
