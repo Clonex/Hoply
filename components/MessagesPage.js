@@ -2,9 +2,12 @@ import React from 'react';
 import { NavigationEvents } from "react-navigation";
 import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row} from 'native-base';
+import {ImagePicker, Permissions} from "expo";
+
 import Header from "./UI/Header";
+import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate, syncMessages, transaction, ISOparser} from "./baseFunctions";
+import {api, navigate, syncMessages, transaction, ISOparser, CMDbuilder} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
@@ -49,11 +52,42 @@ class MessagesPage extends React.Component {
 			messages: data._array
 		});
 	}
+	askPermissionsAsync = async () => {
+		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+    return status === "granted";
+	}
+	takePicture = async () => {
+		let hasPerm = await this.askPermissionsAsync();
+		if(hasPerm)
+		{
+			let pickerResult = await ImagePicker.launchCameraAsync({
+        base64: true,
+        exif: false,
+        quality: 0.3,
+        allowsEditing: true,
+        aspect: [4, 3],
+      });
+      if(!pickerResult.cancelled)
+      {
+      	let data = await api("messages", {}, "POST", {
+					sender: this.props.user.id,
+					body: CMDbuilder("BIN", "data:image/jpeg;base64," + pickerResult.base64),
+					receiver: this.state.selectedMessage
+				});
+				if(data === 200 || data === 201)
+				{
+					await syncMessages(this.props.db);
+					await this.dbMessages();
+				}
+      }
+		}
+	}
 
 	getMessages = (to, senderID) => {
 		let ret = this.state.messages.filter(message => (message.receiver === senderID && message.sender === to) || (message.receiver === to && message.sender === senderID));
 		return ret.reverse();
 	}
+	
 	sendMessage = async () => {
 		if(this.state.currMsg.length > 0)
 		{
@@ -139,19 +173,7 @@ class MessagesPage extends React.Component {
 										this.refs.scrollr.scrollToEnd({animated: false});
 								}}>
 								{
-									userMessages.map((message, key) => 
-									<Card style={[styles.messageCard, styles[(message.sender === this.props.user.id ? "meCard" : "otherCard")]]} key={key}>
-										<CardItem bordered>
-											<Body>
-												<Text>
-													{message.body}
-												</Text>
-											</Body>
-										</CardItem>
-										<CardItem footer>
-											<Text>{message.sender} - {ISOparser(message.stamp)}</Text>
-										</CardItem>
-									</Card>)
+									userMessages.map((message, key) =>  <Message key={key} data={message} user={this.props.user}/>)
 								}
 								</ScrollView>
 							</View>
@@ -172,6 +194,8 @@ class MessagesPage extends React.Component {
 											value={this.state.currMsg}
 											onSubmitEditing={this.sendMessage}
 											/>
+										<Icon onPress={this.sendMessage} active name="map-marker" type="FontAwesome" />
+										<Icon onPress={this.takePicture} active name="camera" type="FontAwesome" />
 										<Icon onPress={this.sendMessage} active name="paper-plane" type="FontAwesome" />
 									</Item>
 							</View>
@@ -189,11 +213,11 @@ class MessagesPage extends React.Component {
 																<Text style={{height: 20}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
 															</Left>
 															<Right style={{alignSelf: 'stretch'}}>
-																<Text style={{height: 20, fontSize: 10, textAlign: "center", flex: 1}} textAlign="right">{ISOparser(latestMsg[0].stamp)}</Text>
+																<Text style={{height: 20, fontSize: 10, textAlign: "center", flex: 1}} textAlign="right">{ISOparser(latestMsg[latestMsg.length - 1].stamp)}</Text>
 															</Right>
 														</Row>
 														<Row style={{marginTop: 5}}>
-															<Text style={{fontSize: 10}}>{latestMsg[0].body.length > 40 ? (latestMsg[0].body.substring(0, 40) + "..") : latestMsg[0].body}</Text>
+															<Text style={{fontSize: 10}}>{latestMsg[latestMsg.length - 1].body.length > 40 ? (latestMsg[latestMsg.length - 1].body.substring(0, 40) + "..") : latestMsg[latestMsg.length - 1].body}</Text>
 														</Row>
 													</Grid>
 													

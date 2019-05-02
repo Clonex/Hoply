@@ -16,6 +16,22 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		return false;
 	}
 }
+
+export function CMDbuilder(type, data)
+{
+	return "%" + type + " " + data;
+}
+
+export function CMDparser(data)
+{
+	if(data.substring(0, 1) === "%")
+	{
+		let msgData = data.substring(1).split(" ");
+		let cmd = msgData[0];
+		return {cmd, data: msgData[1]};
+	}
+	return {cmd: false};
+}
 //.fromNow();
 import moment from "moment";
 export function ISOparser(ISOstring)
