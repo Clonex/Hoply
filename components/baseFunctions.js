@@ -25,12 +25,23 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 export async function getWall(db, user = false)
 {
 	try {
-		let data = await transaction(db, `SELECT 
+		let data;
+		if(user)
+		{
+			data = await transaction(db, `SELECT 
+																				*,
+																				(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
+																			FROM messages WHERE 
+																				receiver = ? AND sender = ?
+																			ORDER BY id DESC `, [WALL_ID, user]);
+		}else{
+			data = await transaction(db, `SELECT 
 																				*,
 																				(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
 																			FROM messages 
 																				WHERE receiver = ? 
 																			ORDER BY id DESC `, [WALL_ID]);
+		}
 		if(data)
 		{
 			return data._array;

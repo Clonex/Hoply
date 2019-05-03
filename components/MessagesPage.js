@@ -7,7 +7,7 @@ import {ImagePicker, Permissions, Location} from "expo";
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate, syncMessages, transaction, ISOparser, CMDbuilder} from "./baseFunctions";
+import {api, navigate, syncMessages, transaction, ISOparser, CMDbuilder, WALL_ID, COMMENTS_ID, LIKES_ID} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
@@ -47,6 +47,7 @@ class MessagesPage extends React.Component {
 																											(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
 																											(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
 																									FROM messages 
+																										WHERE receiver NOT IN ("` + WALL_ID + `", "` + COMMENTS_ID + `", "` + LIKES_ID + `")
 																									ORDER BY id DESC`);
 		this.setState({
 			messages: data._array

@@ -2,8 +2,9 @@ import React from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
-import { def, transaction, api, syncBasic, navigate } from "./baseFunctions";
+import { def, transaction, api, syncBasic, navigate, getWall } from "./baseFunctions";
 import Header from "./UI/Header";
+import Cards from "./UI/Cards";
 export default class ProfilePage extends React.Component {
   constructor(props)
   {
@@ -15,6 +16,7 @@ export default class ProfilePage extends React.Component {
       follows: 0,
       following: 0,
       posts: 0,
+      postedData: [],
     };
     this.state = {...this.blankState};
   }
@@ -58,8 +60,9 @@ export default class ProfilePage extends React.Component {
     
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
+    let postedData = await getWall(this.props.db, this.state.userID);
 
-    this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count});
+    this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count, postedData});
   }
   findUser = async () => {
     let data = await transaction(this.props.db, "SELECT * FROM users WHERE id = ?", [this.state.userID]);
@@ -168,9 +171,15 @@ export default class ProfilePage extends React.Component {
             </Grid>
               </View>
         <Content>
-            <Text>
-                Posts here..
-            </Text>
+            {
+              this.state.postedData.length > 0 ?
+                this.state.postedData.map((post, key) => <Cards key={key} data={post} navigation={this.props.navigation}/>)
+              : 
+              <Text>
+                  No posts..
+              </Text>
+            }
+            
         </Content>
       </Container>);
   }

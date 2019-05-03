@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 
 import { Image } from 'react-native';
-import { Card, CardItem, Thumbnail, Text, Button, Icon, Left, Body, Right } from 'native-base';
+import { Card, CardItem, Thumbnail, Text, Button, Icon, Left, Body, Right, Row, Col } from 'native-base';
 
 import { ISOparser, CMDparser, navigate } from "../baseFunctions";
 
@@ -35,20 +35,23 @@ export default class Cards extends React.Component {
 
         </CardItem>
         <CardItem>
-          <Left>
-            <Button transparent>
-              <Icon active name="thumbs-up" />
-              <Text>12</Text>
-            </Button>
-          </Left>
-          <Body>
-            <Button transparent>
-              <Icon name="chatbubbles" />
-              <Text>4</Text>
-            </Button>
-          </Body>
+          <Row>
+            <Col>
+              <Button transparent>
+                <Icon active name="thumbs-up" />
+                <Text>12</Text>
+              </Button>
+            </Col>
+            <Col>
+              <Button transparent>
+                <Icon name="chatbubbles" style={styles.notActive}/>
+                <Text style={styles.notActive}>4</Text>
+              </Button>
+            </Col>
+          </Row>
+          
           <Right>
-            <Text>{ISOparser(data.stamp)}</Text>
+            <Text style={styles.date}>{ISOparser(data.stamp)}</Text>
           </Right>
         </CardItem>
       </Card>);
@@ -56,5 +59,13 @@ export default class Cards extends React.Component {
 }
 
 const styles = StyleSheet.create({
-
+  btn: {
+    width: 10,
+  },
+  date: {
+    fontSize: 10,
+  },
+  notActive: {
+    color: "#000"
+  }
 });

@@ -61,7 +61,7 @@ export default class FeedPage extends React.Component {
                 onChangeText={(text) => this.setState({currMsg: text})}
                 value={this.state.currMsg}
                 />
-            <Button onPress={this.wallPost}>
+            <Button onPress={this.wallPost} style={styles.btn}>
               <Text>Share!</Text>
             </Button>
           </Content>
@@ -77,5 +77,7 @@ export default class FeedPage extends React.Component {
 }
 
 const styles = StyleSheet.create({
- 
+ btn: {
+   marginTop: 5
+ }
 });
