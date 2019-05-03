@@ -24,13 +24,13 @@ export function CMDbuilder(type, data)
 
 export function CMDparser(data)
 {
-	if(data.substring(0, 1) === "%")
+	if(data && data.substring(0, 1) === "%")
 	{
 		let msgData = data.substring(1).split(" ");
 		let cmd = msgData[0];
 		return {cmd, data: msgData[1]};
 	}
-	return {cmd: false};
+	return {cmd: false, data: false};
 }
 //.fromNow();
 import moment from "moment";
