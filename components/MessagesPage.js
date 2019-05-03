@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationEvents } from "react-navigation";
 import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row} from 'native-base';
-import {ImagePicker, Permissions} from "expo";
+import {ImagePicker, Permissions, Location} from "expo";
 
 import Header from "./UI/Header";
 import Message from "./UI/Message";
@@ -53,8 +53,29 @@ class MessagesPage extends React.Component {
 		});
 	}
 	askPermissionsAsync = async () => {
-		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL);
+		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
     return status === "granted";
+	}
+	shareLocation = async () => {
+		let hasPerm = await this.askPermissionsAsync();
+		if(hasPerm)
+		{
+			let location = await Location.getCurrentPositionAsync({});
+			console.log("Location", location);
+			if(location)
+			{
+				let data = await api("messages", {}, "POST", {
+					sender: this.props.user.id,
+					body: CMDbuilder("GPS", location.coords.latitude + "," + location.coords.longitude),
+					receiver: this.state.selectedMessage
+				});
+				if(data === 200 || data === 201)
+				{
+					await syncMessages(this.props.db);
+					await this.dbMessages();
+				}
+			}
+		}
 	}
 	takePicture = async () => {
 		let hasPerm = await this.askPermissionsAsync();
@@ -194,7 +215,7 @@ class MessagesPage extends React.Component {
 											value={this.state.currMsg}
 											onSubmitEditing={this.sendMessage}
 											/>
-										<Icon onPress={this.sendMessage} active name="map-marker" type="FontAwesome" />
+										<Icon onPress={this.shareLocation} active name="map-marker" type="FontAwesome" />
 										<Icon onPress={this.takePicture} active name="camera" type="FontAwesome" />
 										<Icon onPress={this.sendMessage} active name="paper-plane" type="FontAwesome" />
 									</Item>

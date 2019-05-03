@@ -1,13 +1,48 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Container, Content, Text, Icon, Button } from 'native-base';
-import {navigate} from "./baseFunctions";
+import { StyleSheet, View } from 'react-native';
+import { Container, Content, Text, Icon, Button, Textarea } from 'native-base';
+import {navigate, getWall, WALL_ID, api, CMDbuilder, syncMessages} from "./baseFunctions";
 
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
 
 export default class FeedPage extends React.Component {
+  constructor(){
+    super();
+    this.state = {
+      currMsg: "",
+      posts: [],
+    };
+  }
+  componentWillMount() {
+    this.getData();
+  }
+  getData = async (page = 0) => {
+    let posts = await getWall(this.props.db);
+    this.setState({
+      posts: posts
+    });
+  }
+  wallPost = async () => {
+    let data = await api("messages", {}, "POST", {
+      sender: this.props.user.id,
+      body: CMDbuilder("JSON", JSON.stringify({
+        message: this.state.currMsg
+      })),
+      receiver: WALL_ID
+    });
+    if(data === 200 || data === 201)
+    {
+      this.setState({
+        currMsg: ""
+      });
+      await syncMessages(this.props.db);
+      //await this.dbMessages();
+    }
+  }
+
   render() {
+ 
     return (<Container>
              <Header 
               middleSearch={true}
@@ -18,9 +53,24 @@ export default class FeedPage extends React.Component {
               navigation={this.props.navigation}
 							/>
         <Content>
-            <Cards/>
-            <Cards/>
-            <Cards/>
+          <Content padder>
+            <Textarea 
+                rowSpan={5} 
+                bordered 
+                placeholder="What do you have on your mind?" 
+                onChangeText={(text) => this.setState({currMsg: text})}
+                value={this.state.currMsg}
+                />
+            <Button onPress={this.wallPost}>
+              <Text>Share!</Text>
+            </Button>
+          </Content>
+          {
+            this.state.posts.length > 0 ? 
+              this.state.posts.map((post, key) => <Cards key={key} data={post} navigation={this.props.navigation}/>)
+            : 
+            <Text>No posts! Get some friends..</Text>
+          }
         </Content>
       </Container>);
   }

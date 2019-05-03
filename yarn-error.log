@@ -1,5 +1,5 @@
 Arguments: 
-  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js start
+  C:\Program Files\nodejs\node.exe C:\Program Files (x86)\Yarn\bin\yarn.js build
 
 PATH: 
   C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\ProgramData\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Users\Bruger\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Yarn\bin\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Git\cmd;C:\Program Files\PuTTY\;C:\Program Files\Oracle\VirtualBox;;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;F:\AppServ\php7;C:\ProgramData\ComposerSetup\bin;C:\Program Files (x86)\ZeroTier\One\;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\ProgramData\chocolatey\bin;C:\Program Files\nodejs\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files\TortoiseGit\bin;C:\Users\Bruger\AppData\Local\Programs\Python\Python37-32\Scripts\;C:\Users\Bruger\AppData\Local\Programs\Python\Python37-32\;C:\Ruby24-x64\bin;C:\Users\Bruger\AppData\Local\Microsoft\WindowsApps;C:\Users\Bruger\AppData\Local\Yarn\bin;C:\Program Files (x86)\mitmproxy\bin;F:\AppServ\Apache24\bin;F:\AppServ\MySQL\bin;C:\Users\Bruger\AppData\Roaming\Composer\vendor\bin;C:\Users\Bruger\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files (x86)\Java\jdk1.8.0_161\bin;C:\Users\Bruger\AppData\Roaming\npm
@@ -20,10 +20,12 @@ npm manifest:
       "start": "expo start",
       "android": "expo start --android",
       "ios": "expo start --ios",
-      "eject": "expo eject"
+      "eject": "expo eject",
+      "build": "expo publish"
     },
     "dependencies": {
       "expo": "^32.0.0",
+      "moment": "^2.24.0",
       "native-base": "^2.12.1",
       "react": "16.5.0",
       "react-native": "https://github.com/expo/react-native/archive/sdk-32.0.0.tar.gz",
@@ -3667,7 +3669,7 @@ Lockfile:
     dependencies:
       moment ">= 2.9.0"
   
-  "moment@>= 2.9.0", moment@^2.22.2:
+  "moment@>= 2.9.0", moment@^2.22.2, moment@^2.24.0:
     version "2.24.0"
     resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   
@@ -5384,9 +5386,9 @@ Lockfile:
 
 Trace: 
   Error: Command failed.
-  Exit code: 1073807364
+  Exit code: 1
   Command: C:\WINDOWS\system32\cmd.exe
-  Arguments: /d /s /c expo start
+  Arguments: /d /s /c expo publish
   Directory: F:\AppServ\www\SDU\Hoply
   Output:
   

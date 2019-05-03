@@ -23,7 +23,12 @@ export default class Message extends React.Component {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
           }}
-        />);
+        >
+          <MapView.Marker
+            coordinate={{ latitude: Number(GPS[0]), longitude: Number(GPS[1])}}
+            title="Location"
+          />
+        </MapView>);
       break;
 
       default: 

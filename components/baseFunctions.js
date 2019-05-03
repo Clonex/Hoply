@@ -1,3 +1,7 @@
+export const WALL_ID = "7e1b11e7-0d3f-4360-9e68-b3b5faf08ddc";
+export const COMMENTS_ID = "ae3c71d8-e0b6-4b7c-a762-1536d81fde49";
+export const LIKES_ID = "dffaa264-5418-4c1f-aa9c-f6493e0f915c";
+
 export async function api(endpoint = "users", params = {}, method = "GET", payload = false)
 {
 	try {
@@ -15,6 +19,28 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		console.log("Error", e);
 		return false;
 	}
+
+}
+
+export async function getWall(db, user = false)
+{
+	try {
+		let data = await transaction(db, `SELECT 
+																				*,
+																				(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
+																			FROM messages 
+																				WHERE receiver = ? 
+																			ORDER BY id DESC `, [WALL_ID]);
+		if(data)
+		{
+			return data._array;
+		}
+	} catch(e)
+	{
+		console.log("Err", e);
+	}
+
+	return [];
 }
 
 export function CMDbuilder(type, data)
@@ -26,9 +52,12 @@ export function CMDparser(data)
 {
 	if(data && data.substring(0, 1) === "%")
 	{
+		console.log(data.substring(1));
 		let msgData = data.substring(1).split(" ");
 		let cmd = msgData[0];
-		return {cmd, data: msgData[1]};
+		msgData = data.substring(1).split(cmd + " ");
+		let cmdData = cmd === "JSON" ? JSON.parse(msgData[1]) : msgData[1];
+		return {cmd, data: cmdData};
 	}
 	return {cmd: false, data: false};
 }
