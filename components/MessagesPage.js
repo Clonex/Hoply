@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationEvents } from "react-navigation";
-import { StyleSheet, View, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row} from 'native-base';
+import { StyleSheet, View, KeyboardAvoidingView, ScrollView, ActivityIndicator } from 'react-native';
+import { Container, Card, CardItem, Body, Text, List, ListItem, Left, Right, Icon, Button , Input, Item, Grid, Row, Col} from 'native-base';
 import {ImagePicker, Permissions, Location} from "expo";
 
 import Header from "./UI/Header";
@@ -20,6 +20,7 @@ class MessagesPage extends React.Component {
 			messages: [],
 			currMsg: "",
 			selectingUser: false,
+			loading: false,
 		};
 		this.state = {...this.blankState};
 	}
@@ -58,6 +59,9 @@ class MessagesPage extends React.Component {
     return status === "granted";
 	}
 	shareLocation = async () => {
+		this.setState({
+			loading: true
+		});
 		let hasPerm = await this.askPermissionsAsync();
 		if(hasPerm)
 		{
@@ -70,6 +74,7 @@ class MessagesPage extends React.Component {
 					body: CMDbuilder("GPS", location.coords.latitude + "," + location.coords.longitude),
 					receiver: this.state.selectedMessage
 				});
+				this.setState({loading: false});
 				if(data === 200 || data === 201)
 				{
 					await syncMessages(this.props.db);
@@ -79,6 +84,9 @@ class MessagesPage extends React.Component {
 		}
 	}
 	takePicture = async () => {
+		this.setState({
+			loading: true
+		});
 		let hasPerm = await this.askPermissionsAsync();
 		if(hasPerm)
 		{
@@ -88,7 +96,8 @@ class MessagesPage extends React.Component {
         quality: 0.3,
         allowsEditing: true,
         aspect: [4, 3],
-      });
+			});
+			
       if(!pickerResult.cancelled)
       {
       	let data = await api("messages", {}, "POST", {
@@ -96,12 +105,19 @@ class MessagesPage extends React.Component {
 					body: CMDbuilder("BIN", "data:image/jpeg;base64," + pickerResult.base64),
 					receiver: this.state.selectedMessage
 				});
+				this.setState({
+					loading: false
+				});
 				if(data === 200 || data === 201)
 				{
 					await syncMessages(this.props.db);
 					await this.dbMessages();
 				}
-      }
+      }else{
+				this.setState({
+					loading: false
+				});
+			}
 		}
 	}
 
@@ -165,6 +181,13 @@ class MessagesPage extends React.Component {
 		console.log(userMessages);
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
+						{
+							this.state.loading ?
+								<View style={{position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0, 0, 0, 0.24)", zIndex: 999999, flex: 1, alignItems: "center", justifyContent: "center"}}>
+									<ActivityIndicator size="large" color="#FFF" />
+								</View>
+							: null
+						}
 						<Header
 							leftContent={this.state.selectedMessage ? 
 							<Button transparent onPress={() => this.focusChat(false)} style={{width: 50}}>
@@ -209,6 +232,7 @@ class MessagesPage extends React.Component {
 									<Button light onPress={this.sendMessage} style={{height: 40, width: "15%", flex: 1, justifyContent: "center", alignContent: "center"}}>
 										<Icon name="paper-plane" type="FontAwesome"/>
 									</Button>*/}
+								
 									<Item rounded style={{width: "100%", height: 40}}>
 										<Input 
 											placeholder='Message..'
@@ -228,26 +252,26 @@ class MessagesPage extends React.Component {
 										unique.map((chat, key) => {
 											let latestMsg = this.getMessages(chat, this.props.user.id);
 											return (<ListItem onPress={() => this.focusChat(chat)} key={key}>
-												<Left>
-													<Grid>
+												<Grid>
+													<Col>
 														<Row>
-															<Left>
-																<Text style={{height: 20}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
-															</Left>
-															<Right style={{alignSelf: 'stretch'}}>
-																<Text style={{height: 20, fontSize: 10, textAlign: "center", flex: 1}} textAlign="right">{ISOparser(latestMsg[latestMsg.length - 1].stamp)}</Text>
-															</Right>
+															<Col style={{flex: 1, alignItems: "flex-start"}}>
+																<Text style={{height: 20, width: "100%"}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
+															</Col>
+															<Col style={{flex: 1, flexDirection: "row-reverse"}}>
+																<Text style={{height: 20, fontSize: 10, textAlign: "right", width: "90%", marginRight: "10%"}} textAlign="right">{ISOparser(latestMsg[latestMsg.length - 1].stamp)}</Text>
+															</Col>
 														</Row>
-														<Row style={{marginTop: 5}}>
-															<Text style={{fontSize: 10}}>{latestMsg[latestMsg.length - 1].body.length > 40 ? (latestMsg[latestMsg.length - 1].body.substring(0, 40) + "..") : latestMsg[latestMsg.length - 1].body}</Text>
+														<Row>
+														<Text style={{fontSize: 10}}>{latestMsg[latestMsg.length - 1].body.length > 40 ? (latestMsg[latestMsg.length - 1].body.substring(0, 40) + "..") : latestMsg[latestMsg.length - 1].body}</Text>
 														</Row>
-													</Grid>
-													
-													
-												</Left>
-												<Right>
-													<Icon name="arrow-forward" />
-												</Right>
+													</Col>
+													<Col style={{width: 10}}>
+														<Icon name="arrow-forward" />
+													</Col>
+												</Grid>
+
+											
 											</ListItem>);
 										})
 									}
