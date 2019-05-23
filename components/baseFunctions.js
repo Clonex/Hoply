@@ -79,6 +79,23 @@ export function ISOparser(ISOstring)
 	return moment(ISOstring).fromNow();
 }
 
+/*
+	TEST ME
+
+*/
+export async function syncFunc(type, db)
+{
+	let data = await transaction(db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
+	let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
+	let newUsers = await api(type, extraParams);
+	for(let i = 0; i < newUsers.length; i++)
+	{
+		let user = newUsers[i];
+		let query = 'INSERT INTO ' + type + ' (' + Object.keys(user).join(",") + ') VALUES (' + Object.keys(user).map(key => "?").join(",") + ')';
+		transaction(db, query, Object.keys(user).map(key => user[key]));
+	}
+}
+
 export async function syncBasic(db, type, WHERE = "id")
 {
 	/*
