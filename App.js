@@ -25,8 +25,9 @@ export default class App extends React.Component {
       tx.executeSql('create table if not exists users (id text primary key not null, name text, stamp text);');
       tx.executeSql('create table if not exists follows (follower text, followee text, stamp text);');
 
-
-      //follower, followee, stamp
+      tx.executeSql('CREATE TABLE IF NOT EXISTS posts (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS likes (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS comments (postID TEXT, userID INTEGER, commment TEXT, stamp TEXT);');
     });
 
     /*this.state.db.transaction(tx => {

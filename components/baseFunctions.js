@@ -19,8 +19,13 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		console.log("Error", e);
 		return false;
 	}
+}
+
+export async function syncData(table = "messages", WHERE = [])
+{
 
 }
+
 
 export async function getWall(db, user = false)
 {
@@ -199,7 +204,7 @@ function swaggerParams(data = {})
 	};
 	return Object.keys(data).map(param => {
 		let d = data[param];
-		return param + "=" + types[d.t] + "." + d.v;
+		return param + "=" + types[d.t] + "." + encodeURI(d.v);
 	});
 }
 
