@@ -7,13 +7,13 @@ import {ImagePicker, Permissions, Location} from "expo";
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate, syncMessages, transaction, ISOparser, CMDbuilder, WALL_ID, COMMENTS_ID, LIKES_ID} from "./baseFunctions";
+import {ViewModel, api, navigate, syncMessages, transaction, ISOparser, CMDbuilder, WALL_ID, COMMENTS_ID, LIKES_ID} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
-	constructor()
+	constructor(props)
 	{
-		super();
+		super(props);
 		this.interval = false;
 		this.blankState = {
 			selectedMessage: false,
@@ -23,6 +23,7 @@ class MessagesPage extends React.Component {
 			loading: false,
 		};
 		this.state = {...this.blankState};
+		this.ViewModel = new ViewModel(props.db);
 	}
 	blurred = async (payload) => {
 		clearInterval(this.interval);
@@ -35,14 +36,22 @@ class MessagesPage extends React.Component {
 			state.selectedMessage = payload.action.params.id;
 		}
 		this.setState(state);
-		await this.dbMessages();
+		/*await this.dbMessages();
 		await syncMessages(this.props.db);
-		await this.dbMessages();
-
-		this.interval = setInterval(() => syncMessages(this.props.db), 1500);
+		await this.dbMessages();*/
+		this.ViewModel.get("messages", (data) => {
+			this.setState({
+				messages: data
+			});
+		});
+		this.interval = setInterval(() => this.ViewModel.get("messages", (data) => {
+			this.setState({
+				messages: data
+			});
+		}), 500);
 	}
 
-	dbMessages = async () => {
+	/*dbMessages = async () => {
 		let data = await transaction(this.props.db, `SELECT 
 																											*, 
 																											(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
@@ -53,7 +62,7 @@ class MessagesPage extends React.Component {
 		this.setState({
 			messages: data._array
 		});
-	}
+	}*/
 	askPermissionsAsync = async () => {
 		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
     return status === "granted";
@@ -77,8 +86,13 @@ class MessagesPage extends React.Component {
 				this.setState({loading: false});
 				if(data === 200 || data === 201)
 				{
-					await syncMessages(this.props.db);
-					await this.dbMessages();
+					/*await syncMessages(this.props.db);
+					await this.dbMessages();*/
+					this.ViewModel.get("messages", (data) => {
+						this.setState({
+							messages: data
+						});
+					});
 				}
 			}
 		}
@@ -110,8 +124,13 @@ class MessagesPage extends React.Component {
 				});
 				if(data === 200 || data === 201)
 				{
-					await syncMessages(this.props.db);
-					await this.dbMessages();
+					/*await syncMessages(this.props.db);
+					await this.dbMessages();*/
+					this.ViewModel.get("messages", (data) => {
+						this.setState({
+							messages: data
+						});
+					});
 				}
       }else{
 				this.setState({
@@ -168,6 +187,7 @@ class MessagesPage extends React.Component {
 								db={this.props.db}
 								user={this.props.user}
 								select={(selected) => {
+									console.log("Selected users", selected);
 									if(!selected)
 									{
 										this.setState({selectingUser: false});

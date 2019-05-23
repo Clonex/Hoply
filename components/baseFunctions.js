@@ -84,6 +84,7 @@ export function ISOparser(ISOstring)
 	return moment(ISOstring).fromNow();
 }
 
+
 export async function syncBasic(db, type, WHERE = "id")
 {
 	/*
@@ -206,5 +207,81 @@ function swaggerParams(data = {})
 		let d = data[param];
 		return param + "=" + types[d.t] + "." + encodeURI(d.v);
 	});
+}
+
+
+export class ViewModel {
+	constructor(db)
+	{
+		this.db = db;
+	}
+
+
+	/*async get(type = "messages"){
+		if(type === "messages")
+		{
+
+		}
+	}*/
+	async get(type = "messages", callback = null, where = []){
+		let data;
+		if(type === "messages")
+		{
+			let query = 
+			`SELECT 
+						*, 
+						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
+						(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
+				FROM messages 
+					WHERE receiver NOT IN ("` + WALL_ID + `", "` + COMMENTS_ID + `", "` + LIKES_ID + `")
+				ORDER BY id DESC`;
+			if(callback)
+			{
+				data = await transaction(this.props.db, query);
+				callback(data);
+			}
+			await this.sync("messages", this.db);//await syncMessages(this.db);
+			data = await transaction(this.props.db, query);
+		}else if(type === "listUsers")
+		{
+			let query = 
+			"SELECT * FROM users WHERE id != ?";
+			if(callback)
+			{
+				data = await transaction(this.props.db, query, where);
+				callback(data);
+			}
+			await this.sync("users", this.db);
+			await this.sync("follows", this.db);
+			/*await syncBasic(this.db, "users");
+    	await syncBasic(this.db, "follows", "stamp");*/
+			data = await transaction(this.props.db, query, where);
+		}
+
+		if(callback)
+		{
+			callback(data);
+		}else{
+			return data;
+		}
+	}
+
+
+	async insert(type = "messages", data = {}){
+
+	}
+
+	async sync(type)
+	{
+		let data = await transaction(this.db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
+		let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
+		let newUsers = await api(type, extraParams);
+		for(let i = 0; i < newUsers.length; i++)
+		{
+			let user = newUsers[i];
+			let query = 'INSERT INTO ' + type + ' (' + Object.keys(user).join(",") + ') VALUES (' + Object.keys(user).map(key => "?").join(",") + ')';
+			transaction(this.db, query, Object.keys(user).map(key => user[key]));
+		}
+	}
 }
 

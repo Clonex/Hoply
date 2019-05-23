@@ -4,32 +4,48 @@ import { StyleSheet, ScrollView, TouchableHighlight } from 'react-native';
 import Header from "./Header";
 import { Container, Text, List, ListItem, Left, Right, Icon, Button, CheckBox } from 'native-base';
 
-import { syncUsers, transaction, syncBasic } from "../baseFunctions";
+import { ViewModel, syncUsers, transaction, syncBasic } from "../baseFunctions";
 export default class UserSelectorModal extends React.Component {
   constructor()
   {
     super();
     this.state = {
-      users: []
+      users: [],
+      selected: [],
     };
+    this.ViewModel = new ViewModel(this.props.db);
   }
   componentWillMount()
   {
-    this.userCheck();
+    this.ViewModel.get("listUsers", (data) => {
+      this.setState({
+        users: data,
+      });
+    }, [this.props.user.id]);
+    //this.userCheck();
   }
-  userCheck = async () => {
+  /*userCheck = async () => {
     await this.listUsers();
     await syncBasic(this.props.db, "users");
     await syncBasic(this.props.db, "follows", "stamp");
-    //await syncUsers(this.props.db);
     await this.listUsers();
-  }
-  listUsers = async () => {
+  }*/
+  /*listUsers = async () => {
     let users = await transaction(this.props.db, "SELECT * FROM users WHERE id != ?", [this.props.user.id]);
     console.log(users);
     this.setState({
       users: users._array,
     });
+  }*/
+  selectUsr = (uID) => {
+    let selected = [...this.state.selected];
+    if(selected.indexOf(uID) !== -1)
+    {
+      selected = selected.filter(ID => uID !== ID);
+    }else{
+      selected.push(uID);
+    }
+    this.state({selected});
   }
   render() {
     return (<Container>
@@ -38,21 +54,22 @@ export default class UserSelectorModal extends React.Component {
           <Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
         </Button>}
         middleTitle={"Users"}
-        /*rightContent={<Button transparent style={{width: 60}}><Text style={styles.header}>Select</Text></Button>}*/
+        rightContent={<Button transparent style={{width: 60}} onPress={() => this.props.select(this.state.selected)}>
+                        <Text style={styles.header}>Start chat!</Text>
+                      </Button>}
         />
         <ScrollView>
           <List>
             {
-              this.state.users.map((user, key) => <ListItem key={key} onPress={() => this.props.select(user.id)}>
-                 {/*
+              this.state.users.map((user, key) => <ListItem key={key} onPress={() => this.select(user.id)}>
+          
                   <Left>
                     <Text>{user.name}</Text>
                   </Left>
                   <Right>
-                    <CheckBox checked={false} color="blue"/>
+                    <CheckBox checked={this.state.selected.indexOf(user.id) !== -1} color="blue"/>
                   </Right>
-                  */}
-                    <Text>{user.name}</Text>
+                  
                 </ListItem>)
             }
             </List>
