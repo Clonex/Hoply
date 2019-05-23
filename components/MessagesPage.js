@@ -7,7 +7,7 @@ import {ImagePicker, Permissions, Location} from "expo";
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {ViewModel, api, navigate, syncMessages, transaction, ISOparser, CMDbuilder, WALL_ID, COMMENTS_ID, LIKES_ID} from "./baseFunctions";
+import {ViewModel, api, navigate, syncMessages, ISOparser, CMDbuilder} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
@@ -36,9 +36,7 @@ class MessagesPage extends React.Component {
 			state.selectedMessage = payload.action.params.id;
 		}
 		this.setState(state);
-		/*await this.dbMessages();
-		await syncMessages(this.props.db);
-		await this.dbMessages();*/
+
 		this.ViewModel.get("messages", (data) => {
 			this.setState({
 				messages: data
@@ -51,18 +49,7 @@ class MessagesPage extends React.Component {
 		}), 500);
 	}
 
-	/*dbMessages = async () => {
-		let data = await transaction(this.props.db, `SELECT 
-																											*, 
-																											(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
-																											(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
-																									FROM messages 
-																										WHERE receiver NOT IN ("` + WALL_ID + `", "` + COMMENTS_ID + `", "` + LIKES_ID + `")
-																									ORDER BY id DESC`);
-		this.setState({
-			messages: data._array
-		});
-	}*/
+	
 	askPermissionsAsync = async () => {
 		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
     return status === "granted";
@@ -86,8 +73,6 @@ class MessagesPage extends React.Component {
 				this.setState({loading: false});
 				if(data === 200 || data === 201)
 				{
-					/*await syncMessages(this.props.db);
-					await this.dbMessages();*/
 					this.ViewModel.get("messages", (data) => {
 						this.setState({
 							messages: data
@@ -124,8 +109,6 @@ class MessagesPage extends React.Component {
 				});
 				if(data === 200 || data === 201)
 				{
-					/*await syncMessages(this.props.db);
-					await this.dbMessages();*/
 					this.ViewModel.get("messages", (data) => {
 						this.setState({
 							messages: data
@@ -198,7 +181,7 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		let userTitle = userMessages.length > 0 ? this.senderOrRecieverName(this.state.selectedMessage, userMessages[0]) : this.state.selectedMessage;
-		console.log(userMessages);
+	
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						{

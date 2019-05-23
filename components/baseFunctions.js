@@ -237,27 +237,24 @@ export class ViewModel {
 				ORDER BY id DESC`;
 			if(callback)
 			{
-				data = await transaction(this.props.db, query);
+				data = (await transaction(this.db, query))._array;
 				callback(data);
 			}
 			await this.sync("messages", this.db);//await syncMessages(this.db);
-			data = await transaction(this.props.db, query);
+			data = (await transaction(this.db, query))._array;
 		}else if(type === "listUsers")
 		{
 			let query = 
 			"SELECT * FROM users WHERE id != ?";
 			if(callback)
 			{
-				data = await transaction(this.props.db, query, where);
+				data = (await transaction(this.db, query, where))._array;
 				callback(data);
 			}
 			await this.sync("users", this.db);
 			await this.sync("follows", this.db);
-			/*await syncBasic(this.db, "users");
-    	await syncBasic(this.db, "follows", "stamp");*/
-			data = await transaction(this.props.db, query, where);
+			data = (await transaction(this.db, query, where))._array;
 		}
-
 		if(callback)
 		{
 			callback(data);
@@ -274,7 +271,7 @@ export class ViewModel {
 	async sync(type)
 	{
 		let data = await transaction(this.db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
-		let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
+		let extraParams = data.length > 0 ? {stamp: "gt." + encodeURI(data._array[0].stamp)} : {};
 		let newUsers = await api(type, extraParams);
 		for(let i = 0; i < newUsers.length; i++)
 		{
