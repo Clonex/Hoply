@@ -44,7 +44,11 @@ class MessagesPage extends React.Component {
 				messages: data
 			});
 		});
-		this.interval = setInterval(() => syncMessages(this.props.db), 1500);
+		this.interval = setInterval(() => this.ViewModel.get("messages", (data) => {
+			this.setState({
+				messages: data
+			});
+		}), 500);
 	}
 
 	/*dbMessages = async () => {

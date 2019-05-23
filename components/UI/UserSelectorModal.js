@@ -4,7 +4,7 @@ import { StyleSheet, ScrollView, TouchableHighlight } from 'react-native';
 import Header from "./Header";
 import { Container, Text, List, ListItem, Left, Right, Icon, Button, CheckBox } from 'native-base';
 
-import { syncUsers, transaction, syncBasic } from "../baseFunctions";
+import { ViewModel, syncUsers, transaction, syncBasic } from "../baseFunctions";
 export default class UserSelectorModal extends React.Component {
   constructor()
   {
@@ -13,25 +13,30 @@ export default class UserSelectorModal extends React.Component {
       users: [],
       selected: [],
     };
+    this.ViewModel = new ViewModel(this.props.db);
   }
   componentWillMount()
   {
-    this.userCheck();
+    this.ViewModel.get("listUsers", (data) => {
+      this.setState({
+        users: data,
+      });
+    }, [this.props.user.id]);
+    //this.userCheck();
   }
-  userCheck = async () => {
+  /*userCheck = async () => {
     await this.listUsers();
     await syncBasic(this.props.db, "users");
     await syncBasic(this.props.db, "follows", "stamp");
-    //await syncUsers(this.props.db);
     await this.listUsers();
-  }
-  listUsers = async () => {
+  }*/
+  /*listUsers = async () => {
     let users = await transaction(this.props.db, "SELECT * FROM users WHERE id != ?", [this.props.user.id]);
     console.log(users);
     this.setState({
       users: users._array,
     });
-  }
+  }*/
   selectUsr = (uID) => {
     let selected = [...this.state.selected];
     if(selected.indexOf(uID) !== -1)

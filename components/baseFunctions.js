@@ -217,7 +217,7 @@ export class ViewModel {
 
 		}
 	}*/
-	async get(type = "messages", callback = null){
+	async get(type = "messages", callback = null, where = []){
 		let data;
 		if(type === "messages")
 		{
@@ -236,6 +236,18 @@ export class ViewModel {
 			}
 			await syncMessages(this.db);
 			data = await transaction(this.props.db, query);
+		}else if(type === "listUsers")
+		{
+			let query = 
+			"SELECT * FROM users WHERE id != ?";
+			if(callback)
+			{
+				data = await transaction(this.props.db, query, where);
+				callback(data);
+			}
+			await syncBasic(this.db, "users");
+    	await syncBasic(this.db, "follows", "stamp");
+			data = await transaction(this.props.db, query, where);
 		}
 
 		if(callback)
