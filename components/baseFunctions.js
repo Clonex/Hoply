@@ -79,22 +79,6 @@ export function ISOparser(ISOstring)
 	return moment(ISOstring).fromNow();
 }
 
-/*
-	TEST ME
-
-*/
-export async function syncFunc(type, db)
-{
-	let data = await transaction(db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
-	let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
-	let newUsers = await api(type, extraParams);
-	for(let i = 0; i < newUsers.length; i++)
-	{
-		let user = newUsers[i];
-		let query = 'INSERT INTO ' + type + ' (' + Object.keys(user).join(",") + ') VALUES (' + Object.keys(user).map(key => "?").join(",") + ')';
-		transaction(db, query, Object.keys(user).map(key => user[key]));
-	}
-}
 
 export async function syncBasic(db, type, WHERE = "id")
 {
@@ -251,7 +235,7 @@ export class ViewModel {
 				data = await transaction(this.props.db, query);
 				callback(data);
 			}
-			await syncFunc("messages", this.db);//await syncMessages(this.db);
+			await this.sync("messages", this.db);//await syncMessages(this.db);
 			data = await transaction(this.props.db, query);
 		}else if(type === "listUsers")
 		{
@@ -262,8 +246,8 @@ export class ViewModel {
 				data = await transaction(this.props.db, query, where);
 				callback(data);
 			}
-			await syncFunc("users", this.db);
-			await syncFunc("follows", this.db);
+			await this.sync("users", this.db);
+			await this.sync("follows", this.db);
 			/*await syncBasic(this.db, "users");
     	await syncBasic(this.db, "follows", "stamp");*/
 			data = await transaction(this.props.db, query, where);
@@ -280,6 +264,19 @@ export class ViewModel {
 
 	async insert(type = "messages", data = {}){
 
+	}
+
+	async sync(type)
+	{
+		let data = await transaction(this.db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
+		let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
+		let newUsers = await api(type, extraParams);
+		for(let i = 0; i < newUsers.length; i++)
+		{
+			let user = newUsers[i];
+			let query = 'INSERT INTO ' + type + ' (' + Object.keys(user).join(",") + ') VALUES (' + Object.keys(user).map(key => "?").join(",") + ')';
+			transaction(this.db, query, Object.keys(user).map(key => user[key]));
+		}
 	}
 }
 
