@@ -251,7 +251,7 @@ export class ViewModel {
 				data = await transaction(this.props.db, query);
 				callback(data);
 			}
-			await syncMessages(this.db);
+			await syncFunc("messages", this.db);//await syncMessages(this.db);
 			data = await transaction(this.props.db, query);
 		}else if(type === "listUsers")
 		{
@@ -262,8 +262,10 @@ export class ViewModel {
 				data = await transaction(this.props.db, query, where);
 				callback(data);
 			}
-			await syncBasic(this.db, "users");
-    	await syncBasic(this.db, "follows", "stamp");
+			await syncFunc("users", this.db);
+			await syncFunc("follows", this.db);
+			/*await syncBasic(this.db, "users");
+    	await syncBasic(this.db, "follows", "stamp");*/
 			data = await transaction(this.props.db, query, where);
 		}
 
