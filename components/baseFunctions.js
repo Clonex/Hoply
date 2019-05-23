@@ -203,3 +203,52 @@ function swaggerParams(data = {})
 	});
 }
 
+
+export class ViewModel {
+	constructor(db)
+	{
+		this.db = db;
+	}
+
+
+	/*async get(type = "messages"){
+		if(type === "messages")
+		{
+
+		}
+	}*/
+	async get(type = "messages", callback = null){
+		let data;
+		if(type === "messages")
+		{
+			let query = 
+			`SELECT 
+						*, 
+						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
+						(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
+				FROM messages 
+					WHERE receiver NOT IN ("` + WALL_ID + `", "` + COMMENTS_ID + `", "` + LIKES_ID + `")
+				ORDER BY id DESC`;
+			if(callback)
+			{
+				data = await transaction(this.props.db, query);
+				callback(data);
+			}
+			await syncMessages(this.db);
+			data = await transaction(this.props.db, query);
+		}
+
+		if(callback)
+		{
+			callback(data);
+		}else{
+			return data;
+		}
+	}
+
+
+	async insert(type = "messages", data = {}){
+
+	}
+}
+

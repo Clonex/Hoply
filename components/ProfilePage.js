@@ -5,6 +5,7 @@ import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
 import { def, transaction, api, syncBasic, navigate, getWall } from "./baseFunctions";
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
+
 export default class ProfilePage extends React.Component {
   constructor(props)
   {
