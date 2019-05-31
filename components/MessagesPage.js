@@ -49,11 +49,11 @@ class MessagesPage extends React.Component {
 		}), 500);
 	}
 
-	
 	askPermissionsAsync = async () => {
 		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
     return status === "granted";
 	}
+
 	shareLocation = async () => {
 		this.setState({
 			loading: true
@@ -82,6 +82,7 @@ class MessagesPage extends React.Component {
 			}
 		}
 	}
+	
 	takePicture = async () => {
 		this.setState({
 			loading: true
