@@ -17,7 +17,7 @@ export default class LoginPage extends React.Component {
   }
   componentWillMount()
   {
-    syncUsers(this.props.db);
+    //syncUsers(this.props.db);
   }
   
 
@@ -40,7 +40,7 @@ export default class LoginPage extends React.Component {
     if(data.length > 0)
     {
       this.props.updateData("user", data[0]);
-      syncMessages(this.props.db);
+      //syncMessages(this.props.db);
     }else{
       alert("User not found!");
     }

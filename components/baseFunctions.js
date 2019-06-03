@@ -143,6 +143,8 @@ export async function syncUsers(db)
 
 export async function syncMessages(db)
 {
+
+	return;
 	let data = await transaction(db, 'SELECT id FROM messages ORDER BY id DESC LIMIT 1');
 	let extraParams = data.length > 0 ? {id: {t: ">", v: data._array[0].id}} : {};
 
@@ -205,7 +207,7 @@ function swaggerParams(data = {})
 	};
 	return Object.keys(data).map(param => {
 		let d = data[param];
-		return param + "=" + types[d.t] + "." + encodeURI(d.v);
+		return param + "=" + types[d.t] + "." + encodeURIComponent(d.v).replace(/%20/g,'+');
 	});
 }
 
@@ -223,6 +225,10 @@ export class ViewModel {
 
 		}
 	}*/
+	async multiGet(type = [])
+	{
+
+	}
 	async get(type = "messages", callback = null, where = []){
 		let data;
 		if(type === "messages")
@@ -244,8 +250,9 @@ export class ViewModel {
 			data = (await transaction(this.db, query))._array;
 		}else if(type === "listUsers")
 		{
-			let query = 
-			"SELECT * FROM users WHERE id != ?";
+		}else if(type === "follows")
+		{
+			let query = "SELECT * FROM users WHERE id != ?";
 			if(callback)
 			{
 				data = (await transaction(this.db, query, where))._array;
@@ -270,14 +277,18 @@ export class ViewModel {
 
 	async sync(type)
 	{
-		let data = await transaction(this.db, 'SELECT stamp FROM ' + type + ' ORDER BY id DESC LIMIT 1');
-		let extraParams = data.length > 0 ? {stamp: "gt." + encodeURI(data._array[0].stamp)} : {};
-		let newUsers = await api(type, extraParams);
-		for(let i = 0; i < newUsers.length; i++)
+		let data = await transaction(this.db, 'SELECT * FROM messages ORDER BY unixStamp DESC LIMIT 1');
+		let extraParams = data.length > 0 ? {stamp: {t: ">", v: data._array[0].stamp}} : {};
+		let responseArr = await api(type, extraParams);
+		for(let i = 0; i < responseArr.length; i++)
 		{
-			let user = newUsers[i];
-			let query = 'INSERT INTO ' + type + ' (' + Object.keys(user).join(",") + ') VALUES (' + Object.keys(user).map(key => "?").join(",") + ')';
-			transaction(this.db, query, Object.keys(user).map(key => user[key]));
+			let currResp = responseArr[i];
+			let query = 'INSERT INTO ' + type + ' (' + Object.keys(currResp).join(",") + ', "unixStamp") VALUES (' + Object.keys(currResp).map(key => "?").join(",") + ', ?)';
+			let datArr = [
+				...Object.keys(currResp).map(key => currResp[key]),
+				moment(currResp.stamp).unix()
+			];
+			transaction(this.db, query, datArr);
 		}
 	}
 }

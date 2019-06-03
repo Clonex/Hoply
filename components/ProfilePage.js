@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
-import { def, transaction, api, syncBasic, navigate, getWall } from "./baseFunctions";
+import { ViewModel, def, transaction, api, syncBasic, navigate, getWall } from "./baseFunctions";
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
 
@@ -20,6 +20,7 @@ export default class ProfilePage extends React.Component {
       postedData: [],
     };
     this.state = {...this.blankState};
+    this.ViewModel = new ViewModel(props.db);
   }
   componentFocus = (payload) => {
     let state = {...this.blankState};

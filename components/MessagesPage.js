@@ -7,7 +7,7 @@ import {ImagePicker, Permissions, Location} from "expo";
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {ViewModel, api, navigate, syncMessages, ISOparser, CMDbuilder} from "./baseFunctions";
+import {api, navigate, syncMessages, ISOparser, CMDbuilder} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
@@ -23,7 +23,6 @@ class MessagesPage extends React.Component {
 			loading: false,
 		};
 		this.state = {...this.blankState};
-		this.ViewModel = new ViewModel(props.db);
 	}
 	blurred = async (payload) => {
 		clearInterval(this.interval);
@@ -37,16 +36,16 @@ class MessagesPage extends React.Component {
 		}
 		this.setState(state);
 
-		this.ViewModel.get("messages", (data) => {
+		this.props.ViewModel.get("messages", (data) => {
 			this.setState({
 				messages: data
 			});
 		});
-		this.interval = setInterval(() => this.ViewModel.get("messages", (data) => {
-			this.setState({
-				messages: data
-			});
-		}), 500);
+
+		this.interval = setInterval(async () => {
+			let messages = await this.props.ViewModel.get("messages");
+			this.setState({messages});
+		}, 2000);
 	}
 
 	askPermissionsAsync = async () => {
@@ -58,6 +57,7 @@ class MessagesPage extends React.Component {
 		this.setState({
 			loading: true
 		});
+
 		let hasPerm = await this.askPermissionsAsync();
 		if(hasPerm)
 		{
@@ -73,7 +73,7 @@ class MessagesPage extends React.Component {
 				this.setState({loading: false});
 				if(data === 200 || data === 201)
 				{
-					this.ViewModel.get("messages", (data) => {
+					this.props.ViewModel.get("messages", (data) => {
 						this.setState({
 							messages: data
 						});
@@ -110,7 +110,7 @@ class MessagesPage extends React.Component {
 				});
 				if(data === 200 || data === 201)
 				{
-					this.ViewModel.get("messages", (data) => {
+					this.props.ViewModel.get("messages", (data) => {
 						this.setState({
 							messages: data
 						});
@@ -164,7 +164,7 @@ class MessagesPage extends React.Component {
 			{
 				unique.push(id);
 			}
-		}); 
+		});
 		if(this.state.selectingUser)
 		{
 			return <UserSelectorModal 

@@ -1,11 +1,10 @@
 import React from 'react';
-import SiteHandler from "./components/SiteHandler";
-
 import { SQLite } from 'expo';
 
+import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
-
-
+import {ViewModel} from "./components/baseFunctions";
+const db = SQLite.openDatabase('databa4.db');
 export default class App extends React.Component {
   constructor()
   {
@@ -15,22 +14,23 @@ export default class App extends React.Component {
         id: false,
         name: false
       },
-      db: SQLite.openDatabase('databas.db')
+      //db: SQLite.openDatabase('databas2.db')
     };
+    this.ViewModel = new ViewModel(db);
   }
   componentDidMount()
   {
-    this.state.db.transaction(tx => {
-      tx.executeSql('create table if not exists messages (id integer primary key not null, sender text, receiver text, body text, stamp text);');
-      tx.executeSql('create table if not exists users (id text primary key not null, name text, stamp text);');
-      tx.executeSql('create table if not exists follows (follower text, followee text, stamp text);');
+    db.transaction(tx => {
+      tx.executeSql('create table if not exists messages (id integer primary key not null, sender text, receiver text, body text, stamp text, unixStamp integer);');
+      tx.executeSql('create table if not exists users (id text primary key not null, name text, stamp text, unixStamp integer);');
+      tx.executeSql('create table if not exists follows (follower text, followee text, stamp text, unixStamp integer);');
 
-      tx.executeSql('CREATE TABLE IF NOT EXISTS posts (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
+  /* tx.executeSql('CREATE TABLE IF NOT EXISTS posts (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS likes (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS comments (postID TEXT, userID INTEGER, commment TEXT, stamp TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS comments (postID TEXT, userID INTEGER, commment TEXT, stamp TEXT);');*/
     });
 
-    /*this.state.db.transaction(tx => {
+    /*db.transaction(tx => {
       tx.executeSql(
         'create table if not exists items (id integer primary key not null, done int, value text);'
       );
@@ -51,8 +51,8 @@ export default class App extends React.Component {
   }
   render() {
     return this.state.user.id ? 
-      <SiteHandler updateData={this.updateState} user={this.state.user} db={this.state.db} signOut={this.signOut}/> 
+      <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={ViewModel}/> 
       : 
-      <LoginPage updateData={this.updateState} db={this.state.db}/>;
+      <LoginPage updateData={this.updateState} db={db}/>;
   }
 }
