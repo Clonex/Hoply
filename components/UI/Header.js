@@ -11,28 +11,44 @@ export default class Header extends React.Component {
         super();
         this.state = {
             searching: false,
-						results: [],
-						currSearch: false,
+            results: [],
+            currSearch: false,
         };
     }
     blurLogic = () => {
         if(this.state.results.length === 0)
         {
             this.setState({
-								searching: false,
-								currSearch: false,
-								results: [],
+                searching: false,
+                currSearch: false,
+                results: [],
             });
         }
     }
     
     searchr = async (text) => {
-			//let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
-				let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
-				console.log(results);
-				this.setState({results: results._array.reverse(), currSearch: text});
+        //let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
+        /*let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
+        console.log(results);
+		  this.setState({results: results._array.reverse(), currSearch: text});*/
+		
+		  this.setState({currSearch: text});
+		  this.props.ViewModel.get("searchUsers", (users) => {
+			if(text === this.state.currSearch)
+			{
+				console.log(users);
+				this.setState({
+					results: users
+				});
+			}
+		  }, ["%" + text + "%"]);
     }
-  render() {
+
+    focusChecker = () => {
+        this.setState({searching: true});
+    }
+
+    render() {
       let leftContent = this.props.leftContent;
       let middleContent = <Title>{this.props.middleTitle}</Title>;
       if(this.props.middleContent)
@@ -41,7 +57,7 @@ export default class Header extends React.Component {
       }else if(this.props.middleSearch)
       {
         middleContent = (<Item rounded style={styles.searchItem}>
-                            <Input placeholder='Search' ref="searchInp" onChangeText={this.searchr} onFocus={() => this.setState({searching: true})} onBlur={this.blurLogic}/>
+                            <Input placeholder='Search' ref="searchInp" onChangeText={this.searchr} onFocus={this.focusChecker} onBlur={this.blurLogic}/>
                             <Text onPress={() => this.setState({currSearch: "", searching: false})} style={{fontSize: 25, width: 30, height: 32, display: "none"}}>×</Text>
                         </Item>);
         if(this.state.searching)
@@ -54,48 +70,51 @@ export default class Header extends React.Component {
             </Button>;
         }
       }
-    return (
-    <React.Fragment>
-        <Head>
-            <Left>
-                {
-                    leftContent ? leftContent : null
-                }
-            </Left>
-            <Body>
-                {
-                    middleContent
-                }
-            </Body>
-            <Right>
-                {
-                    this.props.rightContent ? this.props.rightContent : null
-                }
-            </Right>
-        </Head>
-        {
-            this.state.searching ?
-                <View style={{width: "100%", "height": "90%", position: "absolute", top: 64, left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
-									<ScrollView>
-									<List>
-										{
-											this.state.results.map((result, key) => <ListItem onPress={() => navigate("Profile", this, {id: result.id})} key={key}>
-												<Left>
-														<Text>{result.name}</Text>
-												</Left>
-												<Right>
-														<Icon name="arrow-forward" />
-												</Right>
-											</ListItem>)
-										}
-									</List>
-									</ScrollView>
-                </View>
-            : null
-        }
-    </React.Fragment>
-    );
-  }
+        return (
+        <React.Fragment>
+            <Head>
+                <Left>
+                    {
+                        leftContent ? leftContent : null
+                    }
+                </Left>
+                <Body>
+                    {
+                        middleContent
+                    }
+                </Body>
+                <Right>
+                    {
+                        this.props.rightContent ? this.props.rightContent : null
+                    }
+                </Right>
+            </Head>
+            {
+                this.state.searching ?
+                    <View style={{width: "100%", "height": "90%", position: "absolute", top: 64, left: 0, zIndex: 99999, backgroundColor: "#FFF"}}>
+                                        <ScrollView>
+                                        <List>
+                                            {
+                                                this.state.results.map((result, key) => <ListItem onPress={() => navigate("Profile", this, {id: result.id})} key={key}>
+                                                    <Left>
+                                                            <Text style={{color: "#969696"}}>
+                                                                {result.id.length > 12 ? result.id.substring(0, 10) + ".." : result.id}#
+                                                            </Text>
+                                                            <Text>{result.name}</Text>
+                                                    </Left>
+                                                    <Right>
+                                                            <Icon name="arrow-forward" />
+                                                    </Right>
+                                                </ListItem>)
+                                            }
+                                        </List>
+                                        </ScrollView>
+                    </View>
+                : null
+            }
+        </React.Fragment>
+        );
+    }
 }
 
 const styles = StyleSheet.create({

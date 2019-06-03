@@ -197,6 +197,8 @@ class MessagesPage extends React.Component {
 							<Button transparent onPress={() => this.focusChat(false)} style={{width: 50}}>
 								<Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
 							</Button> : false}
+              ViewModel={this.props.ViewModel}
+              navigation={this.props.navigation}
 							middleContent={this.state.selectedMessage ? 
 															<Text onPress={() => navigate("Profile", this, {id: this.state.selectedMessage})}>
 																{userTitle}

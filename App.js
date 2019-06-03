@@ -4,7 +4,7 @@ import { SQLite } from 'expo';
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databa4.db');
+const db = SQLite.openDatabase('databa7.db');
 export default class App extends React.Component {
   constructor()
   {
@@ -51,7 +51,7 @@ export default class App extends React.Component {
   }
   render() {
     return this.state.user.id ? 
-      <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={ViewModel}/> 
+      <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={this.ViewModel}/> 
       : 
       <LoginPage updateData={this.updateState} db={db}/>;
   }

@@ -18,9 +18,10 @@ export default class FeedPage extends React.Component {
     this.getData();
   }
   getData = async (page = 0) => {
-    let posts = await getWall(this.props.db);
-    this.setState({
-      posts: posts
+    this.props.ViewModel.get("getWall", (data) => {
+      this.setState({
+        posts: data
+      });
     });
   }
   wallPost = async () => {
@@ -36,8 +37,7 @@ export default class FeedPage extends React.Component {
       this.setState({
         currMsg: ""
       });
-      await syncMessages(this.props.db);
-      //await this.dbMessages();
+      this.getData();
     }
   }
 
@@ -51,6 +51,7 @@ export default class FeedPage extends React.Component {
 														</Button>}
               db={this.props.db}
               navigation={this.props.navigation}
+              ViewModel={this.props.ViewModel}
 							/>
         <Content>
           <Content padder>

@@ -68,7 +68,6 @@ export function CMDparser(data)
 {
 	if(data && data.substring(0, 1) === "%")
 	{
-		console.log(data.substring(1));
 		let msgData = data.substring(1).split(" ");
 		let cmd = msgData[0];
 		msgData = data.substring(1).split(cmd + " ");
@@ -87,6 +86,11 @@ export function ISOparser(ISOstring)
 
 export async function syncBasic(db, type, WHERE = "id")
 {
+	console.log("--------------------------");
+	console.log("SYNC BASIC USED!");
+	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
+	console.log("--------------------------");
+	return;
 	/*
       Y NO UNIX TIMESTAMP! D:
       let data = await transaction(db, 'SELECT stamp FROM users ORDER BY id DESC LIMIT 1');
@@ -218,21 +222,47 @@ export class ViewModel {
 		this.db = db;
 	}
 
-
-	/*async get(type = "messages"){
-		if(type === "messages")
-		{
-
-		}
-	}*/
 	async multiGet(type = [])
 	{
 
 	}
+
+	async do(type = "like", data = {})
+	{
+		if(type === "like")
+		{
+			await api("follows", {}, "POST", {
+        follower: data.id,
+        followee: data.userID
+			});
+			await this.sync("follows");
+		}else if(type === "unlike")
+		{
+			await api("follows", {
+        follower: {
+          t: "=",
+          v: data.id
+        },
+        followee: {
+          t: "=",
+          v: data.userID
+        },
+			}, "DELETE");
+			await transaction(this.db, 
+			`DELETE FROM 
+				follows 
+			WHERE 
+				follower = ?
+			AND
+				followee = ?`, [data.id, data.userID]);
+		}
+	}
+
 	async get(type = "messages", callback = null, where = []){
 		let data;
 		if(type === "messages")
 		{
+			//http://caracal.imada.sdu.dk/app2019/messages?or=(sender.eq.killme1%2Creceiver.eq.killme1)
 			let query = 
 			`SELECT 
 						*, 
@@ -246,11 +276,43 @@ export class ViewModel {
 				data = (await transaction(this.db, query))._array;
 				callback(data);
 			}
-			await this.sync("messages", this.db);//await syncMessages(this.db);
+			await this.sync("messages");//await syncMessages(this.db);
 			data = (await transaction(this.db, query))._array;
-		}else if(type === "listUsers")
-		{
 		}else if(type === "follows")
+		{
+			
+		}else if(type === "getWall")
+		{
+			let query = 
+			`SELECT 
+						*,
+						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
+				FROM messages 
+					WHERE receiver = ?
+				ORDER BY unixStamp DESC`;
+				if(callback)
+				{
+					data = (await transaction(this.db, query, [WALL_ID]))._array;
+					callback(data);
+				}
+				await this.sync("messages", {
+					receiver: {
+						t: "=",
+						v: WALL_ID
+					}
+				});
+				data = (await transaction(this.db, query, [WALL_ID]))._array;
+		}else if(type === "searchUsers")
+		{
+			let query = "SELECT * FROM users WHERE name LIKE ? ORDER BY unixStamp DESC";
+			if(callback)
+			{
+				data = (await transaction(this.db, query, where))._array;
+				callback(data);
+			}
+			await this.sync("users");
+			data = (await transaction(this.db, query, where))._array;
+		}else if(type === "listUsers")
 		{
 			let query = "SELECT * FROM users WHERE id != ?";
 			if(callback)
@@ -258,8 +320,19 @@ export class ViewModel {
 				data = (await transaction(this.db, query, where))._array;
 				callback(data);
 			}
-			await this.sync("users", this.db);
-			await this.sync("follows", this.db);
+			await this.sync("users");
+			await this.sync("follows");
+			data = (await transaction(this.db, query, where))._array;
+		}else if(type === "getUser")
+		{
+			let query = "SELECT * FROM users WHERE id = ?";
+			if(callback)
+			{
+				data = (await transaction(this.db, query, where))._array;
+				callback(data);
+			}
+			await this.sync("users");
+			await this.sync("follows");
 			data = (await transaction(this.db, query, where))._array;
 		}
 		if(callback)
@@ -275,11 +348,16 @@ export class ViewModel {
 
 	}
 
-	async sync(type)
+	async sync(type, where = {})
 	{
-		let data = await transaction(this.db, 'SELECT * FROM messages ORDER BY unixStamp DESC LIMIT 1');
+		let data = await transaction(this.db, 'SELECT * FROM ' + type + ' ORDER BY unixStamp DESC LIMIT 1');
 		let extraParams = data.length > 0 ? {stamp: {t: ">", v: data._array[0].stamp}} : {};
+		extraParams = {
+			...extraParams,
+			...where
+		};
 		let responseArr = await api(type, extraParams);
+		let promises = [];
 		for(let i = 0; i < responseArr.length; i++)
 		{
 			let currResp = responseArr[i];
@@ -288,8 +366,9 @@ export class ViewModel {
 				...Object.keys(currResp).map(key => currResp[key]),
 				moment(currResp.stamp).unix()
 			];
-			transaction(this.db, query, datArr);
+			promises.push(transaction(this.db, query, datArr));
 		}
+		await Promise.all(promises);
 	}
 }
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 import { Image } from 'react-native';
 import { Card, CardItem, Thumbnail, Text, Button, Icon, Left, Body, Right, Row, Col } from 'native-base';
@@ -9,16 +9,16 @@ import { ISOparser, CMDparser, navigate } from "../baseFunctions";
 export default class Cards extends React.Component {
 
   render() {
-    console.log(this.props.data);
     let data = this.props.data;
     let cmd = CMDparser(data.body);
-    console.log(data, cmd);
     return (<Card>
         <CardItem>
           <Left>
-            <Thumbnail source={{uri: 'https://i.imgur.com/NjbrJAr.png?1'}} onPress={() =>  navigate("Profile", this, {id: data.sender})}/>
+            <TouchableWithoutFeedback onPress={() => navigate("Profile", this, {id: data.sender})}>
+              <Thumbnail source={{uri: 'https://i.imgur.com/NjbrJAr.png?1'}}/>
+            </TouchableWithoutFeedback>
             <Body>
-              <Text onPress={() =>  navigate("Profile", this, {id: data.sender})}>{data.senderName}</Text>
+              <Text onPress={() => navigate("Profile", this, {id: data.sender})}>{data.senderName}</Text>
               <Text note>
                 {data.sender}
               </Text>

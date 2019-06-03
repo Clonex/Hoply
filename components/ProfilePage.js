@@ -30,35 +30,21 @@ export default class ProfilePage extends React.Component {
       this.findUser();
 
       await this.getDBinfo();
-      await syncBasic(this.props.db, "follows", "stamp");
+      await this.props.ViewModel.sync("follows");
       await this.getDBinfo();
     });
   }
   like = async (doLike) => {
-    if(doLike)
-    {
-      await api("follows", {}, "POST", {
-        follower: this.props.user.id,
-        followee: this.state.userID
-      });
-    }else{
-      await api("follows", {
-        follower: {
-          t: "=",
-          v: this.props.user.id
-        },
-        followee: {
-          t: "=",
-          v: this.state.userID
-        },
-      }, "DELETE");
-    }
-    await syncBasic(this.props.db, "follows", "stamp");
+    await this.props.ViewModel.do(doLike ? "like" : "unlike", {
+      id: this.props.user.id,
+      userID: this.state.userID
+    });
     await this.getDBinfo();
   }
   getDBinfo = async () => {
     let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
-
+    let test = await transaction(this.props.db, "SELECT * FROM follows");
+    console.log("Follwo data", test);
     
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
@@ -67,16 +53,14 @@ export default class ProfilePage extends React.Component {
     this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count, postedData});
   }
   findUser = async () => {
-    let data = await transaction(this.props.db, "SELECT * FROM users WHERE id = ?", [this.state.userID]);
-    if(data.length > 0)
-    {
-      this.setState({
-        userData: data._array[0]
-      });
-    }else{
-      await syncBasic(this.props.db, "users");
-      this.findUser();
-    }
+    this.props.ViewModel.get("getUser", (data) => {
+      if(data.length > 0)
+      {
+        this.setState({
+          userData: data[0]
+        });
+      }
+    }, [this.state.userID]);
   }
   removeAccount = async () => {
     await api("follows", {
@@ -140,6 +124,7 @@ export default class ProfilePage extends React.Component {
                 
               db={this.props.db}
               navigation={this.props.navigation}
+              ViewModel={this.props.ViewModel}
 							/>
             <View style={styles.topBG}>
               <Text style={styles.bigTitle}>
