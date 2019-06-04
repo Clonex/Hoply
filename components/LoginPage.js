@@ -39,6 +39,7 @@ export default class LoginPage extends React.Component {
     let data = await api("users", {name: {t: "=", v: this.state.username}});
     if(data.length > 0)
     {
+     //await this.props.ViewModel.sync("messages");
       this.props.updateData("user", data[0]);
       //syncMessages(this.props.db);
     }else{

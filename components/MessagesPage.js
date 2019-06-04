@@ -255,6 +255,38 @@ class MessagesPage extends React.Component {
         		: <ScrollView>
 								<List>
 									{
+										unique.length > 0 ? 
+											unique.map((chat, key) => {
+												let latestMsg = this.getMessages(chat, this.props.user.id);
+												return (<ListItem onPress={() => this.focusChat(chat)} key={key}>
+													<Grid>
+														<Col>
+															<Row>
+																<Col style={{flex: 1, alignItems: "flex-start"}}>
+																	<Text style={{height: 20, width: "100%"}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
+																</Col>
+																<Col style={{flex: 1, flexDirection: "row-reverse"}}>
+																	<Text style={{height: 20, fontSize: 10, textAlign: "right", width: "90%", marginRight: "10%"}} textAlign="right">{ISOparser(latestMsg[latestMsg.length - 1].stamp)}</Text>
+																</Col>
+															</Row>
+															<Row>
+															<Text style={{fontSize: 10}}>{latestMsg[latestMsg.length - 1].body.length > 40 ? (latestMsg[latestMsg.length - 1].body.substring(0, 40) + "..") : latestMsg[latestMsg.length - 1].body}</Text>
+															</Row>
+														</Col>
+														<Col style={{width: 10}}>
+															<Icon name="arrow-forward" />
+														</Col>
+													</Grid>
+												</ListItem>);
+											})
+										: 
+										<ListItem>
+											<Text>
+												No messages! Press '+' to start a new chat!
+											</Text>
+										</ListItem>
+									}
+									{
 										unique.map((chat, key) => {
 											let latestMsg = this.getMessages(chat, this.props.user.id);
 											return (<ListItem onPress={() => this.focusChat(chat)} key={key}>

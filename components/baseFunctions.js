@@ -1,6 +1,7 @@
 export const WALL_ID = "7e1b11e7-0d3f-4360-9e68-b3b5faf08ddc";
 export const COMMENTS_ID = "ae3c71d8-e0b6-4b7c-a762-1536d81fde49";
 export const LIKES_ID = "dffaa264-5418-4c1f-aa9c-f6493e0f915c";
+export const PB_ID = "d7d64795-9c9d-4a4f-b2d5-116d452e378f";
 
 export async function api(endpoint = "users", params = {}, method = "GET", payload = false)
 {
@@ -283,7 +284,9 @@ export class ViewModel {
 			
 		}else if(type === "getWall")
 		{
-			let query = 
+			data = [];
+			//CREATE NEW TABLE!
+		/*	let query = 
 			`SELECT 
 						*,
 						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
@@ -301,7 +304,7 @@ export class ViewModel {
 						v: WALL_ID
 					}
 				});
-				data = (await transaction(this.db, query, [WALL_ID]))._array;
+				data = (await transaction(this.db, query, [WALL_ID]))._array;*/
 		}else if(type === "searchUsers")
 		{
 			let query = "SELECT * FROM users WHERE name LIKE ? ORDER BY unixStamp DESC";
@@ -350,6 +353,8 @@ export class ViewModel {
 
 	async sync(type, where = {})
 	{
+		/*let whereData = this.translateWHERE(where);
+		let data = await transaction(this.db, 'SELECT * FROM ' + type + whereData.sql + ' ORDER BY unixStamp DESC LIMIT 1', whereData.items);*/
 		let data = await transaction(this.db, 'SELECT * FROM ' + type + ' ORDER BY unixStamp DESC LIMIT 1');
 		let extraParams = data.length > 0 ? {stamp: {t: ">", v: data._array[0].stamp}} : {};
 		extraParams = {
@@ -370,5 +375,34 @@ export class ViewModel {
 		}
 		await Promise.all(promises);
 	}
+	/*{
+					receiver: {
+						t: "=",
+						v: WALL_ID
+					}
+				}*/
+		translateWHERE(where = {})
+		{
+			let ret = {
+				sql: [],
+				items: []
+			};
+			Object.keys(where).map((key) => {
+				let curr = where[key];
+				ret.sql.push(key + curr.t + "?");
+				ret.items.push(curr.v);
+				//ret.sql = ret.sql + " " + key + curr.t + "?";
+				console.log(key, "=", curr);
+			});
+			ret.sql = ret.sql.join(" AND ");
+			if(ret.sql.length > 0)
+			{
+				ret.sql = " WHERE " + ret.sql;
+			}
+			console.log(ret);
+			return ret;
+		}
+	
+	
 }
 
