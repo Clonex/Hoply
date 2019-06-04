@@ -7,6 +7,10 @@ import {api, syncMessages, transaction, syncUsers} from "./baseFunctions";
 import uuid from "uuid/v4";
 
 export default class LoginPage extends React.Component {
+  
+  /*
+   *
+   */
   constructor()
   {
     super();
@@ -15,12 +19,18 @@ export default class LoginPage extends React.Component {
       loading: false,
     };
   }
+
+  /*
+   *
+   */
   componentWillMount()
   {
     //syncUsers(this.props.db);
   }
-  
 
+  /*
+   *
+   */
   createUser = async () => {
     let userCheck = await api("users", {name: {t: "=", v: this.state.username}});
     if(userCheck.length === 0)
@@ -35,6 +45,10 @@ export default class LoginPage extends React.Component {
       alert("Username is already in use!");
     }
   }
+
+  /*
+   *
+   */
   checkLogin = async () => {
     let data = await api("users", {name: {t: "=", v: this.state.username}});
     if(data.length > 0)
@@ -46,6 +60,10 @@ export default class LoginPage extends React.Component {
       alert("User not found!");
     }
   }
+
+  /*
+   *
+   */
   render() {
     return (<Container>
         <Content contentContainerStyle={styles.content}>

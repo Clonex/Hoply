@@ -6,6 +6,10 @@ import {Header as Head, Body, Title, Right, Left, Input, Item, Icon, Button, Lis
 import {transaction, navigate} from "../baseFunctions";
 
 export default class Header extends React.Component {
+
+    /*
+     *
+     */
     constructor()
     {
         super();
@@ -15,6 +19,10 @@ export default class Header extends React.Component {
             currSearch: false,
         };
     }
+
+    /*
+     *
+     */
     blurLogic = () => {
         if(this.state.results.length === 0)
         {
@@ -25,7 +33,10 @@ export default class Header extends React.Component {
             });
         }
     }
-    
+
+    /*
+     *
+     */
     searchr = async (text) => {
         //let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
         /*let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
@@ -44,10 +55,16 @@ export default class Header extends React.Component {
 		  }, ["%" + text + "%"]);
     }
 
+    /*
+     *
+     */
     focusChecker = () => {
         this.setState({searching: true});
     }
 
+    /*
+     *
+     */
     render() {
       let leftContent = this.props.leftContent;
       let middleContent = <Title>{this.props.middleTitle}</Title>;

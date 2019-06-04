@@ -7,6 +7,10 @@ import Header from "./UI/Header";
 import Cards from "./UI/Cards";
 
 export default class FeedPage extends React.Component {
+
+  /*
+   *
+   */
   constructor(){
     super();
     this.state = {
@@ -14,9 +18,17 @@ export default class FeedPage extends React.Component {
       posts: [],
     };
   }
+
+  /*
+   *
+   */
   componentWillMount() {
     this.getData();
   }
+
+  /*
+   *
+   */
   getData = async (page = 0) => {
     this.props.ViewModel.get("getWall", (data) => {
       this.setState({
@@ -24,6 +36,10 @@ export default class FeedPage extends React.Component {
       });
     });
   }
+
+  /*
+   *
+   */
   wallPost = async () => {
     let data = await api("messages", {}, "POST", {
       sender: this.props.user.id,
@@ -41,6 +57,9 @@ export default class FeedPage extends React.Component {
     }
   }
 
+  /*
+   *
+   */
   render() {
  
     return (<Container>

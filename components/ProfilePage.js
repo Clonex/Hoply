@@ -7,6 +7,10 @@ import Header from "./UI/Header";
 import Cards from "./UI/Cards";
 
 export default class ProfilePage extends React.Component {
+  
+  /*
+   *
+   */
   constructor(props)
   {
     super(props);
@@ -22,6 +26,10 @@ export default class ProfilePage extends React.Component {
     this.state = {...this.blankState};
     this.ViewModel = new ViewModel(props.db);
   }
+
+  /*
+   *
+   */
   componentFocus = (payload) => {
     let state = {...this.blankState};
     state.userID = payload.action.params ? payload.action.params.id : this.props.user.id;
@@ -34,6 +42,10 @@ export default class ProfilePage extends React.Component {
       await this.getDBinfo();
     });
   }
+
+  /*
+   *
+   */
   like = async (doLike) => {
     await this.props.ViewModel.do(doLike ? "like" : "unlike", {
       id: this.props.user.id,
@@ -41,6 +53,10 @@ export default class ProfilePage extends React.Component {
     });
     await this.getDBinfo();
   }
+
+  /*
+   *
+   */
   getDBinfo = async () => {
     let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
     let test = await transaction(this.props.db, "SELECT * FROM follows");
@@ -52,6 +68,10 @@ export default class ProfilePage extends React.Component {
 
     this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count, postedData});
   }
+
+  /*
+   *
+   */
   findUser = async () => {
     this.props.ViewModel.get("getUser", (data) => {
       if(data.length > 0)
@@ -62,6 +82,10 @@ export default class ProfilePage extends React.Component {
       }
     }, [this.state.userID]);
   }
+
+  /*
+   *
+   */
   removeAccount = async () => {
     await api("follows", {
       followee: {
@@ -95,8 +119,11 @@ export default class ProfilePage extends React.Component {
     }, "DELETE");
     this.props.signOut();
   }
+
+  /*
+   *
+   */
   render() {
-    
     return (<Container>
               <NavigationEvents onWillFocus={this.componentFocus}/>
               <View style={{width: "100%", height: 250}}>
@@ -172,6 +199,9 @@ export default class ProfilePage extends React.Component {
   }
 }
 
+  /*
+   *
+   */
 const styles = StyleSheet.create({
   infoText: {
     fontSize: 15,

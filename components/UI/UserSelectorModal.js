@@ -6,6 +6,10 @@ import { Container, Text, List, ListItem, Left, Right, Icon, Button, CheckBox } 
 
 import { ViewModel } from "../baseFunctions";
 export default class UserSelectorModal extends React.Component {
+
+  /*
+   *
+   */
   constructor(props)
   {
     super(props);
@@ -15,6 +19,10 @@ export default class UserSelectorModal extends React.Component {
     };
     this.ViewModel = new ViewModel(props.db);
   }
+
+  /*
+   *
+   */
   componentWillMount()
   {
     this.ViewModel.get("listUsers", (data) => {
@@ -24,6 +32,9 @@ export default class UserSelectorModal extends React.Component {
     }, [this.props.user.id]);
   }
 
+  /*
+   *
+   */
   selectUsr = (uID) => {
     let selected = [...this.state.selected];
     if(selected.indexOf(uID) !== -1)
@@ -34,6 +45,10 @@ export default class UserSelectorModal extends React.Component {
     }
     this.setState({selected});
   }
+
+  /*
+   *
+   */
   render() {
     return (<Container>
       <Header

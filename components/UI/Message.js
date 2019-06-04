@@ -6,6 +6,10 @@ import { Card, CardItem, Text, Body } from 'native-base';
 import {ISOparser, CMDparser} from "../baseFunctions";
 
 export default class Message extends React.Component {
+
+  /*
+   *
+   */
   messageContent = (check, message) => {
     let data = check.data;
     switch(check.cmd)
@@ -43,6 +47,10 @@ export default class Message extends React.Component {
     }
     
   }
+
+  /*
+   *
+   */
   render() {
     let message = this.props.data;
     let check = CMDparser(message.body);

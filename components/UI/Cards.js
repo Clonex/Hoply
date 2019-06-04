@@ -8,6 +8,9 @@ import { ISOparser, CMDparser, navigate } from "../baseFunctions";
 
 export default class Cards extends React.Component {
 
+  /*
+   *
+   */
   render() {
     let data = this.props.data;
     let cmd = CMDparser(data.body);
