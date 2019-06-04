@@ -89,7 +89,7 @@ export default class FeedPage extends React.Component {
             this.state.posts.length > 0 ? 
               this.state.posts.map((post, key) => <Cards key={key} data={post} navigation={this.props.navigation}/>)
             : 
-            <Text>No posts! Get some friends..</Text>
+            <Text style={{width: "100%", textAlign: "center"}}>No posts! Get some friends..</Text>
           }
         </Content>
       </Container>);

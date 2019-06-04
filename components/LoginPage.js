@@ -29,7 +29,7 @@ export default class LoginPage extends React.Component {
   }
 
   /*
-   *
+   * Checks whenever a user exists in the remote database, and adds if it dosent exist.
    */
   createUser = async () => {
     let userCheck = await api("users", {name: {t: "=", v: this.state.username}});
@@ -47,7 +47,7 @@ export default class LoginPage extends React.Component {
   }
 
   /*
-   *
+   * Checks whenever a user exists in the remote database, and saves the info if its correct.
    */
   checkLogin = async () => {
     let data = await api("users", {name: {t: "=", v: this.state.username}});

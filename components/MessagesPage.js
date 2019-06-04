@@ -30,14 +30,14 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Clears the server-sync interval.
    */
 	blurred = async (payload) => {
 		clearInterval(this.interval);
 	}
 
   /*
-   *
+   * Loads the newest messages, and starts a server-sync interval.
    */
 	mounted = async (payload) =>
 	{
@@ -61,7 +61,7 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Asks and checks if the needed permissions has been given.
    */
 	askPermissionsAsync = async () => {
 		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
@@ -69,7 +69,7 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Gets the current location of the user, and shares it in the remote & local db.
    */
 	shareLocation = async () => {
 		this.setState({
@@ -101,7 +101,7 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Opens the camera, and shares a base64 encoded image with the remote & local db.
    */
 	takePicture = async () => {
 		this.setState({
@@ -145,7 +145,7 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Finds messages from and to the specified users.
    */
 	getMessages = (to, senderID) => {
 		let ret = this.state.messages.filter(message => (message.receiver === senderID && message.sender === to) || (message.receiver === to && message.sender === senderID));
@@ -153,7 +153,7 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * Sends the current message to the server.
    */
 	sendMessage = async () => {
 		if(this.state.currMsg.length > 0)
@@ -171,12 +171,15 @@ class MessagesPage extends React.Component {
 	}
 
   /*
-   *
+   * @returns the sender name if the sender is the specified user ID, otherwise it returns the reciever name.
    */
 	senderOrRecieverName = (uID, message) => {
 		return message.sender === uID ? message.senderName : message.receiverName;
 	}
-
+	
+	/*
+   * Sets the state to focus the given chat id.
+   */
 	focusChat = (id) => {
 		this.setState({
 			selectedMessage: id,

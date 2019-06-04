@@ -8,7 +8,7 @@ import {ISOparser, CMDparser} from "../baseFunctions";
 export default class Message extends React.Component {
 
   /*
-   *
+   * Parses the message commands, and @returns the correct data.
    */
   messageContent = (check, message) => {
     let data = check.data;

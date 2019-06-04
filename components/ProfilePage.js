@@ -28,7 +28,7 @@ export default class ProfilePage extends React.Component {
   }
 
   /*
-   *
+   * This function runs when the component is rendered. It find the profile info in the database, and checks for updates.
    */
   componentFocus = (payload) => {
     let state = {...this.blankState};
@@ -36,15 +36,14 @@ export default class ProfilePage extends React.Component {
     this.setState(state);
     requestAnimationFrame(async () => {
       this.findUser();
-
       await this.getDBinfo();
-      await this.props.ViewModel.sync("follows");
-      await this.getDBinfo();
+      /*await this.props.ViewModel.sync("follows");
+      await this.getDBinfo();*/
     });
   }
 
   /*
-   *
+   * Used to follow/unfollow a user.
    */
   like = async (doLike) => {
     await this.props.ViewModel.do(doLike ? "like" : "unlike", {
@@ -70,7 +69,7 @@ export default class ProfilePage extends React.Component {
   }
 
   /*
-   *
+   * Gets the current profile info, from the ViewModel.
    */
   findUser = async () => {
     this.props.ViewModel.get("getUser", (data) => {
