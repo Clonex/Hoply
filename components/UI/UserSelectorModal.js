@@ -4,7 +4,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import Header from "./Header";
 import { Container, Text, List, ListItem, Left, Right, Icon, Button, CheckBox } from 'native-base';
 
-import { ViewModel } from "../baseFunctions";
+import { ViewModel, maxString } from "../baseFunctions";
 export default class UserSelectorModal extends React.Component {
 
   /*
@@ -56,23 +56,28 @@ export default class UserSelectorModal extends React.Component {
           <Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
         </Button>}
         middleTitle={"Users"}
-        rightContent={<Button transparent style={{width: 130}} onPress={() => this.props.select(this.state.selected)}>
+        rightContent={<Button transparent style={{width: 130}} onPress={() => requestAnimationFrame(() => this.props.select(this.state.selected))}>
                         <Text style={styles.header}>Start chat!</Text>
                       </Button>}
         />
         <ScrollView>
           <List>
             {
-              this.state.users.map((user, key) => <ListItem key={key} onPress={() => this.selectUsr(user.id)}>
+              this.state.users.length > 0 ?
+              this.state.users.map((user, key) => <ListItem key={key} onPress={() => requestAnimationFrame(() => this.selectUsr(user.id))}>
           
                   <Left>
-                    <Text>{user.name}</Text>
+                    <Text style={{color: "#969696"}}>
+                      {maxString(user.id)}#
+                    </Text>
+                    <Text>{maxString(user.name, 20)}</Text>
                   </Left>
                   <Right>
                     <CheckBox checked={this.state.selected.indexOf(user.id) !== -1} color="blue"/>
                   </Right>
-                  
                 </ListItem>)
+              :
+              <Text style={styles.center}>Loading..</Text>
             }
             </List>
           </ScrollView>
@@ -82,6 +87,10 @@ export default class UserSelectorModal extends React.Component {
 }
 
 const styles = StyleSheet.create({
+  center: {
+    width: "100%",
+    textAlign: "center" 
+  },
   header: {
 
   },

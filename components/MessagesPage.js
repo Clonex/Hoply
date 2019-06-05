@@ -52,7 +52,7 @@ class MessagesPage extends React.Component {
 			this.setState({
 				messages: data
 			});
-		});
+		}, [this.props.user.id]);
 
 		this.interval = setInterval(async () => {
 			let messages = await this.props.ViewModel.get("messages");
@@ -206,13 +206,20 @@ class MessagesPage extends React.Component {
 			return <UserSelectorModal 
 								db={this.props.db}
 								user={this.props.user}
-								select={(selected) => {
-									console.log("Selected users", selected);
+								select={async (selected) => {
 									if(!selected)
 									{
 										this.setState({selectingUser: false});
 									}else{
-										this.setState({selectingUser: false, selectedMessage: selected});
+										if(selected.length > 1)
+										{
+											await this.props.ViewModel.do("group", {
+												title: "Group test",
+												users: [...selected, this.props.user.id]
+											});
+										}else{
+											this.setState({selectingUser: false, selectedMessage: selected});
+										}
 									}
 								}}
 							/>;

@@ -20,12 +20,22 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		console.log("Error", e);
 		return false;
 	}
+
+}
+
+/*
+ * @returns a subset of the string, if its longer than the given @param length.
+ */
+export function maxString(string, length = 10)
+{
+	return string.length > (length + 2) ? string.substring(0, length) + ".." : string;
 }
 
 export async function syncData(table = "messages", WHERE = [])
 {
 
 }
+
 
 
 export async function getWall(db, user = false)
@@ -193,6 +203,14 @@ export function transaction(db, SQL, items = [])
 		});
 	});
 }
+export function transactions(db, callback)
+{
+	return new Promise(r => {
+		db.transaction(async tx => {
+			callback(tx, r);
+		});
+	});
+}
 
 
 export function query(tx, SQL, items = [])
@@ -216,6 +234,7 @@ function swaggerParams(data = {})
 	});
 }
 
+import uuid from "uuid/v4";
 
 export class ViewModel {
 	constructor(db)
@@ -237,6 +256,46 @@ export class ViewModel {
         followee: data.userID
 			});
 			await this.sync("follows");
+		}else if(type === "group")
+		{
+			console.log("ViewModel group", data);
+			let groupID = uuid();
+
+			/*
+				Local shit
+			*/
+			await transaction(this.db, `INSERT INTO groups (name, id) VALUES (?, ?)`, [data.title, groupID]);
+			await transactions(this.db, async (tx, resolve) => {
+				let localPromises = data.users.map(user => query(tx, 
+					`INSERT INTO groupUsers (groupID, userID) VALUES (?, ?)`, [groupID, user]
+				));
+				await Promise.all(localPromises);
+				resolve();
+			});
+	
+
+			/*let localPromises = data.users.map(user => transaction(this.db, 
+				`INSERT INTO groupUsers (groupID, userID) VALUES (?, ?)`, [groupID, user]
+			));
+			await Promise.all(localPromises);/
+
+			/*	
+				Server stuff
+			*/
+			this.do("createUser", {
+				id: groupID,
+				name: "%GRP " + data.title
+			});
+			let promises = data.users.map(user => this.do("like", {
+				id: user,
+				userID: groupID
+			}));
+			Promise.all(promises);
+
+			//DONE
+			console.log("Group created!");
+
+			
 		}else if(type === "unlike")
 		{
 			await api("follows", {
@@ -274,6 +333,14 @@ export class ViewModel {
 				ORDER BY id DESC`;
 			if(callback)
 			{
+				data = (await transaction(this.db, 
+								`SELECT 
+									* 
+								FROM groups 
+								WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
+								`, where))._array;
+				console.log("Groups", data);
+
 				data = (await transaction(this.db, query))._array;
 				callback(data);
 			}

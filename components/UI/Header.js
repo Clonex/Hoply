@@ -3,7 +3,7 @@ import { StyleSheet, View, ScrollView } from 'react-native';
 
 import {Header as Head, Body, Title, Right, Left, Input, Item, Icon, Button, List, ListItem, Text} from 'native-base';
 
-import {transaction, navigate} from "../baseFunctions";
+import {transaction, navigate, maxString} from "../baseFunctions";
 
 export default class Header extends React.Component {
 
@@ -115,9 +115,9 @@ export default class Header extends React.Component {
                                                 this.state.results.map((result, key) => <ListItem onPress={() => navigate("Profile", this, {id: result.id})} key={key}>
                                                     <Left>
                                                             <Text style={{color: "#969696"}}>
-                                                                {result.id.length > 12 ? result.id.substring(0, 10) + ".." : result.id}#
+                                                                {maxString(result.id)}#
                                                             </Text>
-                                                            <Text>{result.name}</Text>
+                                                            <Text>{maxString(result.name, 20)}</Text>
                                                     </Left>
                                                     <Right>
                                                             <Icon name="arrow-forward" />

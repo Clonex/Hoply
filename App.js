@@ -21,18 +21,23 @@ export default class App extends React.Component {
   componentDidMount()
   {
     db.transaction(tx => {
-      tx.executeSql('create table if not exists messages (id integer primary key not null, sender text, receiver text, body text, stamp text, unixStamp integer);');
-      tx.executeSql('create table if not exists users (id text primary key not null, name text, stamp text, unixStamp integer);');
-      tx.executeSql('create table if not exists follows (follower text, followee text, stamp text, unixStamp integer);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY NOT NULL, sender TEXT, receiver TEXT, body TEXT, stamp TEXT, unixStamp INTEGER);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY NOT NULL, name TEXT, stamp TEXT, unixStamp INTEGER);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS follows (follower TEXT, followee TEXT, stamp TEXT, unixStamp INTEGER);');
 
-  /* tx.executeSql('CREATE TABLE IF NOT EXISTS posts (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS likes (postID TEXT, userID INTEGER, stamp TEXT, stamp TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS comments (postID TEXT, userID INTEGER, commment TEXT, stamp TEXT);');*/
+      // Group message tables.
+      tx.executeSql('CREATE TABLE IF NOT EXISTS groups (name TEXT, id TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS groupUsers (groupID TEXT, userID TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS groupMessages (name TEXT, groupID TEXT, msgID TEXT, unixStamp INTEGER);');
+
+      tx.executeSql('CREATE TABLE IF NOT EXISTS post (userID TEXT, text TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS profilePicture (userID TEXT, img TEXT);');
+
     });
 
     /*db.transaction(tx => {
       tx.executeSql(
-        'create table if not exists items (id integer primary key not null, done int, value text);'
+        'create table if not exists items (id integer PRIMARY KEY NOT NULL, done int, value text);'
       );
     });*/
   }
