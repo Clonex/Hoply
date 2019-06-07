@@ -1,10 +1,11 @@
 import React from 'react';
 import { SQLite } from 'expo';
+import { Root } from "native-base";
 
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databa13.db');
+const db = SQLite.openDatabase('databa16.db');
 
 export default class App extends React.Component {
   constructor()
@@ -63,7 +64,9 @@ export default class App extends React.Component {
   }
   render() {
     return this.state.user.id ? 
-      <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={this.ViewModel}/> 
+      <Root>
+        <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={this.ViewModel}/> 
+      </Root>
       : 
       <LoginPage updateData={this.updateState} db={db} ViewModel={this.ViewModel}/>;
   }

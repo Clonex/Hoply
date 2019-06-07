@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Alert } from 'react-native';
 import { NavigationEvents } from "react-navigation";
-import { Container, Content, Text, Icon, Button, Grid, Col } from 'native-base';
+import { ActionSheet, Container, Content, Text, Icon, Button, Grid, Col  } from 'native-base';
 import { ViewModel, def, transaction, api, navigate, getWall } from "./baseFunctions";
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
@@ -119,6 +119,46 @@ export default class ProfilePage extends React.Component {
     this.props.signOut();
   }
 
+  showSettings = () =>
+  {
+    ActionSheet.show(
+      {
+        options: [
+          "Change profile picture",
+          "Remove account",
+          "Sign out",
+          "Cancel",
+        ],
+        cancelButtonIndex: 1,
+        destructiveButtonIndex: 1,
+        title: "Settings"
+      },
+      buttonIndex => {
+        switch(buttonIndex)
+        {
+          case 0:
+
+          break;
+          case 1:
+              Alert.alert(
+                'Hoply',
+                'Do you really want to delete your account?',
+                [
+                  {text: 'Cancel', onPress: () => {}, style: 'cancel'},
+                  {text: 'OK', onPress: this.removeAccount},
+                ],
+                { cancelable: false }
+              );
+          break;
+          case 2:
+              this.props.signOut();
+          break;
+        }
+        /**/
+      }
+    );
+  }
+
   /*
    *
    */
@@ -128,21 +168,10 @@ export default class ProfilePage extends React.Component {
               <View style={{width: "100%", height: 250}}>
 
              <Header 
-              leftContent={this.state.userID === this.props.user.id ? <Button transparent onPress={this.props.signOut} style={{width: 50}}>
-                      <Icon name="sign-out" type="FontAwesome" style={{fontSize: 20}}/>
-                    </Button> : false}
 							middleTitle={def(this.state.userData.name, "Profile")}
 							rightContent={this.state.userID === this.props.user.id ? 
-                            <Button transparent onPress={() => Alert.alert(
-                              'Hoply',
-                              'Do you really want to delete your account?',
-                              [
-                                {text: 'Cancel', onPress: () => {}, style: 'cancel'},
-                                {text: 'OK', onPress: this.removeAccount},
-                              ],
-                              { cancelable: false }
-                            )}>
-															<Icon name="trash" type="FontAwesome" style={{fontSize: 20, color: "red"}}/>
+                            <Button transparent onPress={() => requestAnimationFrame(() => this.showSettings())}>
+															<Icon name="cog" type="FontAwesome" style={{fontSize: 20, color: "black"}}/>
 														</Button> : 
                             <Button transparent onPress={() => navigate("Profile", this, {id: this.props.user.id})}>
 															<Icon name="user" type="FontAwesome" style={{fontSize: 20}}/>
@@ -161,10 +190,14 @@ export default class ProfilePage extends React.Component {
               </Text>
             </View>
             <Grid style={styles.infoContainer}>
-              <Col style={styles.flex} onPress={() => navigate("Messages", this, {id: this.state.userData.id})}>
-                <Icon name="envelope" type="FontAwesome" style={styles.infoText}/>
-                <Text style={styles.infoSubText}>Message</Text>
-              </Col>
+              {
+                this.state.userID !== this.props.user.id ?
+                  <Col style={styles.flex} onPress={() => navigate("Messages", this, {id: this.state.userData.id})}>
+                    <Icon name="envelope" type="FontAwesome" style={styles.infoText}/>
+                    <Text style={styles.infoSubText}>Message</Text>
+                  </Col>
+                : null 
+              }
               <Col style={styles.flex}>
                 <Text style={styles.infoText}>{this.state.posts}</Text>
                 <Text style={styles.infoSubText}>Posts</Text>
@@ -177,10 +210,14 @@ export default class ProfilePage extends React.Component {
                 <Text style={styles.infoText}>{this.state.following}</Text>
                 <Text style={styles.infoSubText}>Liked</Text>
               </Col>
-              <Col style={styles.flex} onPress={() => this.like(!this.state.liked)}>
-                <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome" style={styles.infoText}/>
-                <Text style={styles.infoSubText}>{this.state.liked ? "Unlike" : "Like"}</Text>
-              </Col>
+              {
+                this.state.userID !== this.props.user.id ?
+                  <Col style={styles.flex} onPress={() => this.like(!this.state.liked)}>
+                    <Icon name={this.state.liked ? "heart" : "heart-o"} type="FontAwesome" style={styles.infoText}/>
+                    <Text style={styles.infoSubText}>{this.state.liked ? "Unlike" : "Like"}</Text>
+                  </Col>
+                : null
+              }
             </Grid>
               </View>
         <Content>

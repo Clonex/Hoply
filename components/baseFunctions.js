@@ -241,10 +241,12 @@ function swaggerParams(data = {})
 import uuid from "uuid/v4";
 
 export class ViewModel {
-	constructor(db, userID = false)
+	constructor(db, userID = false, syncSlag = 100)
 	{
 		this.db = db;
 		this.userID = userID;
+		this.syncSlag = syncSlag;
+		this.syncData = {};
 	}
 
 	async multiGet(type = [])
@@ -275,6 +277,10 @@ export class ViewModel {
 				callback();
 			}
 
+		}else if(type === "createUser")
+		{
+			let respData = await api("users", {}, "POST", {id: data.id, name: data.name});
+			return respData === 200 || respData === 201;
 		}else if(type === "group")
 		{
 			console.log("ViewModel group", data);
@@ -292,7 +298,7 @@ export class ViewModel {
 				resolve();
 			});
 	
-
+ 
 			/*let localPromises = data.users.map(user => transaction(this.db, 
 				`INSERT INTO groupUsers (groupID, userID) VALUES (?, ?)`, [groupID, user]
 			));
@@ -301,7 +307,7 @@ export class ViewModel {
 			/*	
 				Server stuff
 			*/
-			this.do("createUser", {
+			await this.do("createUser", {
 				id: groupID,
 				name: "%GRP " + data.title
 			});
@@ -309,10 +315,10 @@ export class ViewModel {
 				id: user,
 				userID: groupID
 			}));
-			Promise.all(promises);
+			await Promise.all(promises);
 
 			//DONE
-			console.log("Group created!");
+			console.log("Group created!", promises);
 
 			
 		}else if(type === "unlike")
@@ -369,16 +375,17 @@ export class ViewModel {
 			if(callback)
 			{
 			
-				data = (await transaction(this.db, 
+				/*data = (await transaction(this.db, 
 								`SELECT 
 									* 
 								FROM groups 
 								WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
 								`, where))._array;
-				//console.log("Groups", data);
+				console.log("Groups", data);*/
 
+				data = (await transaction(this.db, "SELECT * FROM messages"))._array;
+				console.log("Messages data", data);
 				data = (await transaction(this.db, sqlQuery))._array;
-				//console.log("Messages data", data);
 
 				callback(data);
 			}
@@ -434,14 +441,22 @@ export class ViewModel {
 			data = (await transaction(this.db, query, where))._array;
 		}else if(type === "groupIDs")
 		{
-			let query = "SELECT id FROM users WHERE name LIKE ?";
+			let query = 
+			`SELECT 
+				id 
+			FROM 
+				users 
+			WHERE 
+				name LIKE ? 
+				AND id IN (SELECT followee FROM follows WHERE follower = ?)`;
 			if(callback)
 			{
-				data = (await transaction(this.db, query, ["%\%GRP%"]))._array;
+				data = (await transaction(this.db, query, ["%\%GRP%", this.userID]))._array;
 				callback(data);
 			}
 			await this.sync("users");
-			data = (await transaction(this.db, query, ["%\%GRP%"]))._array;
+			await this.sync("follows");
+			data = (await transaction(this.db, query, ["%\%GRP%", this.userID]))._array;
 		}else if(type === "getUser")
 		{
 			let query = "SELECT * FROM users WHERE id = ?";
@@ -462,39 +477,33 @@ export class ViewModel {
 		}
 	}
 
-
-	async insert(type = "messages", data = {}){
-
-	}
-
-	async sync(type, where = {})
+	async forceSync(type, where = {})
 	{
-		/*let whereData = this.translateWHERE(where);
-		let data = await transaction(this.db, 'SELECT * FROM ' + type + whereData.sql + ' ORDER BY unixStamp DESC LIMIT 1', whereData.items);*/
 		let data = await transaction(this.db, 'SELECT * FROM ' + type + ' ORDER BY unixStamp DESC LIMIT 1');
 		let extraParams = data.length > 0 ? {stamp: {t: ">", v: data._array[0].stamp}} : {};
 		extraParams = {
 			...extraParams,
 			...where
 		};
+
+		let groupIDs;
 		let responseArr;
 		if(type === "messages")
 		{
-			let groupIDs = await this.get("groupIDs");
-			console.log("group", groupIDs, this.userID);
-			if(groupIDs.length > 0)
-			{
-				let IDs = [
-					...groupIDs.map(d => d.id),
-					this.userID
-				].map(d => "'" + encodeURL(d) + "'").join(",");
-				let urlParams = 'or=(sender.in.(' + IDs + '),receiver.in.(' + IDs + '))&' + swaggerParams(extraParams).join("&");
-				responseArr = await api(type, urlParams);
-				console.log("Response", responseArr);
-			}else{
-				responseArr = await api(type, extraParams);
-			}
+			groupIDs = await this.get("groupIDs");
 			
+			let IDs = [
+				...groupIDs.map(d => d.id),
+				this.userID,
+				PB_ID,
+				WALL_ID
+			]
+			.map(d => '"' + encodeURL(d) + '"')
+			.join(",");
+			
+			let urlParams = 'or=(sender.in.(' + IDs + '),receiver.in.(' + IDs + '))&' + swaggerParams(extraParams).join("&");
+			console.log("group", groupIDs, this.userID, "params =", urlParams);
+			responseArr = await api(type, urlParams);
 		}else{
 			responseArr = await api(type, extraParams);
 		}
@@ -505,6 +514,22 @@ export class ViewModel {
 		{
 			let currResp = responseArr[i];
 			let query = 'INSERT INTO ' + type + ' (' + Object.keys(currResp).join(",") + ', "unixStamp") VALUES (' + Object.keys(currResp).map(key => "?").join(",") + ', ?)';
+			if(type === "messages")
+			{
+				let isGroup = !!groupIDs.find(d => d === currResp.sender);
+				let isPost = false;
+				let isProfilePic = currResp.receiver === PB_ID;
+				if(isGroup)
+				{
+					console.log("DA GROUP MADDAH");
+					//continue;
+				}
+				if(isProfilePic)
+				{
+					console.log("Save in PB table");
+				}
+				//console.log("INSERTING", type, currResp);
+			}
 			let datArr = [
 				...Object.keys(currResp).map(key => currResp[key]),
 				moment(currResp.stamp).unix()
@@ -512,6 +537,19 @@ export class ViewModel {
 			promises.push(transaction(this.db, query, datArr));
 		}
 		await Promise.all(promises);
+	}
+
+	async sync(type, where = {})
+	{
+		let curr = this.syncData[type];
+		if(Object.keys(where) > 0 || !curr || (Date.now() - curr) > this.syncSlag)
+		{
+			//console.log("Syncing", type, "time =", this.syncData[type], "Diff =", (Date.now() - curr));
+			this.syncData[type] = Date.now();
+			let data = await this.forceSync(type, where);
+			this.syncData[type] = Date.now();
+			return data;
+		}
 	}
 	/*{
 					receiver: {
