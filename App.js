@@ -4,7 +4,7 @@ import { SQLite } from 'expo';
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databa12.db');
+const db = SQLite.openDatabase('databa13.db');
 
 export default class App extends React.Component {
   constructor()
@@ -51,6 +51,13 @@ export default class App extends React.Component {
   }
   updateState = (key, value) => {
     let newState = {};
+    if(key === "user")
+    {
+      if(value.id && value.id !== this.state.user.id)
+      {
+        this.ViewModel = new ViewModel(db, value.id);
+      }
+    }
     newState[key] = value;
     this.setState(newState);
   }

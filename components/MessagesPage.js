@@ -57,7 +57,7 @@ class MessagesPage extends React.Component {
 		this.interval = setInterval(async () => {
 			let messages = await this.props.ViewModel.get("messages");
 			this.setState({messages});
-		}, 500);
+		}, 3000);
 	}
 
   /*
@@ -72,6 +72,10 @@ class MessagesPage extends React.Component {
    * Gets the current location of the user, and shares it in the remote & local db.
    */
 	shareLocation = async () => {
+		this.props.ViewModel.get("groupIDs", (data) => {
+			console.log("Group IDs", data);
+		});
+		return;
 		this.setState({
 			loading: true
 		});
@@ -84,7 +88,7 @@ class MessagesPage extends React.Component {
 			{
 				let data = await api("messages", {}, "POST", {
 					sender: this.props.user.id,
-					body: CMDbuilder("GPS", location.coords.latitude + "," + location.coords.longitude),
+					body: CMDbuilder("GPS", location.coords.latitude + " " + location.coords.longitude),
 					receiver: this.state.selectedMessage
 				});
 				this.setState({loading: false});
@@ -113,16 +117,32 @@ class MessagesPage extends React.Component {
 			let pickerResult = await ImagePicker.launchCameraAsync({
         base64: true,
         exif: false,
-        quality: 0.3,
+        quality: 0.03,
         allowsEditing: true,
         aspect: [4, 3],
 			});
 			
       if(!pickerResult.cancelled)
       {
-      	let data = await api("messages", {}, "POST", {
+				this.props.ViewModel.do("message", {
 					sender: this.props.user.id,
-					body: CMDbuilder("BIN", "data:image/jpeg;base64," + pickerResult.base64),
+					body: CMDbuilder("BIN", pickerResult.base64),
+					receiver: this.state.selectedMessage
+				}, () => {
+					console.time("send");
+					this.props.ViewModel.get("messages", (data) => {
+					console.timeEnd("send");
+
+						this.setState({
+							messages: data,
+							loading: false
+						});
+					});
+				});
+
+      	/*let data = await api("messages", {}, "POST", {
+					sender: this.props.user.id,
+					body: CMDbuilder("BIN", pickerResult.base64),//"data:image/jpeg;base64," + pickerResult.base64),
 					receiver: this.state.selectedMessage
 				});
 				this.setState({
@@ -135,7 +155,7 @@ class MessagesPage extends React.Component {
 							messages: data
 						});
 					});
-				}
+				}*/
       }else{
 				this.setState({
 					loading: false
@@ -237,7 +257,7 @@ class MessagesPage extends React.Component {
 						}
 						<Header
 							leftContent={this.state.selectedMessage ? 
-							<Button transparent onPress={() => this.focusChat(false)} style={{width: 50}}>
+							<Button transparent onPress={() => requestAnimationFrame(() => this.focusChat(false))} style={{width: 50}}>
 								<Icon name="chevron-left" type="FontAwesome" style={{fontSize: 18}}/>
 							</Button> : false}
               ViewModel={this.props.ViewModel}
@@ -296,12 +316,13 @@ class MessagesPage extends React.Component {
 							</View>
 						</KeyboardAvoidingView>
         		: <ScrollView>
-								<List>
+								<List key={unique.length}>
 									{
 										unique.length > 0 ? 
 											unique.map((chat, key) => {
 												let latestMsg = this.getMessages(chat, this.props.user.id);
-												return (<ListItem onPress={() => this.focusChat(chat)} key={key}>
+												let msg = latestMsg[latestMsg.length - 1].body.split("\n")[0];
+												return (<ListItem onPress={() => requestAnimationFrame(() => this.focusChat(chat))} key={key}>
 													<Grid>
 														<Col>
 															<Row>
@@ -313,7 +334,7 @@ class MessagesPage extends React.Component {
 																</Col>
 															</Row>
 															<Row>
-															<Text style={{fontSize: 10}}>{latestMsg[latestMsg.length - 1].body.length > 40 ? (latestMsg[latestMsg.length - 1].body.substring(0, 40) + "..") : latestMsg[latestMsg.length - 1].body}</Text>
+															<Text style={{fontSize: 10}}>{msg.length > 40 ? (msg.substring(0, 40) + "..") : msg}</Text>
 															</Row>
 														</Col>
 														<Col style={{width: 10}}>

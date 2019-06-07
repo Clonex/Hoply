@@ -15,10 +15,10 @@ export default class Message extends React.Component {
     switch(check.cmd)
     {
       case "BIN":
-        return <Image source={{uri: data}} style={{width: "100%", height: 300}} />;
+        return <Image source={{uri: "data:image/jpeg;base64," + data}} style={{width: "100%", height: 300}} />;
       break;
       case "GPS":
-        const GPS = data.split(",");
+        const GPS = data.indexOf(",") !== -1 ? data.split(",") : data.split(" ");
         return (<MapView
           style={{ height: 300, width: "90%" }}
           initialRegion={{
@@ -54,7 +54,6 @@ export default class Message extends React.Component {
   render() {
     let message = this.props.data;
     let check = CMDparser(message.body);
-    console.log(check);
     return (<Card style={[styles.messageCard, styles[(message.sender === this.props.user.id ? "meCard" : "otherCard")]]}>
              {this.messageContent(check, message)} 
               <CardItem footer>
