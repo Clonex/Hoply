@@ -58,11 +58,13 @@ export default class LoginPage extends React.Component {
     if(data.length > 0)
     {
       this.props.ViewModel.setUserID(data[0].id);
+      await this.props.ViewModel.get("users");
+      await this.props.ViewModel.get("follows");
+      
       this.setState({
         loadingText: "Syncing data..",
       });
-      await this.props.ViewModel.get("users");
-      await this.props.ViewModel.get("follows");
+
       await this.props.ViewModel.get("messages");
 
       setInterval(async () => {

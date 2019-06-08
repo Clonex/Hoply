@@ -30,6 +30,20 @@ export default class ProfilePage extends React.Component {
     this.ViewModel = new ViewModel(props.db);
   }
 
+  componentDidUpdate(prevProps)
+  {
+    if(prevProps.navigation.state.params && this.props.navigation.state.params && prevProps.navigation.state.params.id !== this.props.navigation.state.params.id)
+    {
+      this.setState({
+        userID: this.props.navigation.state.params.id
+      });
+      requestAnimationFrame(() => {
+        this.getDBinfo();
+        this.findUser();
+      });
+    }
+  } 
+
   /*
    * This function runs when the component is rendered. It find the profile info in the database, and checks for updates.
    */
@@ -38,8 +52,8 @@ export default class ProfilePage extends React.Component {
     state.userID = payload.action.params ? payload.action.params.id : this.props.user.id;
     this.setState(state);
     requestAnimationFrame(async () => {
+      this.getDBinfo();
       this.findUser();
-      await this.getDBinfo();
       /*await this.props.ViewModel.sync("follows");
       await this.getDBinfo();*/
     });
@@ -53,7 +67,7 @@ export default class ProfilePage extends React.Component {
       id: this.props.user.id,
       userID: this.state.userID
     });
-    await this.getDBinfo();
+    
   }
 
   /*
@@ -62,14 +76,14 @@ export default class ProfilePage extends React.Component {
   getDBinfo = async () => {
     let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
     let test = await transaction(this.props.db, "SELECT * FROM follows");
-    console.log("Follwo data", test);
+
     
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
     let postedData = await getWall(this.props.db, this.state.userID);
 
     let pb = await transaction(this.props.db, "SELECT img FROM profilePicture WHERE userID = ? ORDER BY unixStamp DESC LIMIT 1", [this.state.userID]);
-    console.log("PB", pb);
+ 
     this.setState({
       liked: data.length > 0,
       follows: likes._array[0].count,
@@ -124,6 +138,7 @@ export default class ProfilePage extends React.Component {
         this.setState({
           userData: data[0]
         });
+        requestAnimationFrame(() => this.getDBinfo());
       }
     }, [this.state.userID]);
   }

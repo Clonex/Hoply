@@ -5,7 +5,7 @@ import { Root } from "native-base";
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databa26.db');
+const db = SQLite.openDatabase('databa29.db');
 
 export default class App extends React.Component {
   constructor()

@@ -9,7 +9,7 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 		let paramVar = typeof params === "string" ? params : swaggerParams(params).join("&");
 		if(endpoint === "messages")
 		{
-			console.log("Dafuq" , "http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
+			//console.log("API", "http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
 		}
 		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
@@ -20,10 +20,6 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 			}
 		});
 		let resp = method === "GET" ? response.json() : response.status;
-		if(endpoint === "messages")
-		{
-			console.log(await resp);
-		}
 		return resp;
 	} catch(e) {
 		console.log("Error", e);
@@ -390,7 +386,7 @@ export class ViewModel {
 						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
 						(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
 				FROM messages 
-					WHERE receiver NOT IN ("` + WALL_ID + `", "` + COMMENTS_ID + `", "` + LIKES_ID + `")
+					WHERE receiver NOT IN ("` + WALL_ID + `", "aa` + PB_ID + `")
 				ORDER BY id DESC`;
 
 		/*	data = await transactions(this.db, async (tx, resolve) => {
@@ -526,7 +522,6 @@ export class ViewModel {
 		if(type === "messages")
 		{
 			groupIDs = await this.get("groupIDs");
-			console.log(groupIDs, this.userID);
 			let IDs = [
 				...groupIDs.map(d => d.id),
 				this.userID,
@@ -535,8 +530,13 @@ export class ViewModel {
 			]
 			.map(d => '"' + encodeURL(d) + '"')
 			.join(",");
-	
-			let query = "and=" + replaceAll(replaceAll(replaceAll("(" + swaggerParams(extraParams, ".").join(",") + ',or(sender.in.(' + IDs + '),receiver.in.(' + IDs + ')))', "(", "%28"), ")", "%29"), '"', "%22");
+			
+			let queryContent = 'or(sender.in.(' + IDs + '),receiver.in.(' + IDs + '))';
+			if(Object.keys(extraParams).length > 0)
+			{
+				queryContent = swaggerParams(extraParams, ".").join(",") + ',' + queryContent;
+			}
+			let query = "and=" + replaceAll(replaceAll(replaceAll('(' + queryContent + ')', "(", "%28"), ")", "%29"), '"', "%22");
 			responseArr = await api(type, query);
 		}else{
 			responseArr = await api(type, extraParams);
@@ -567,8 +567,8 @@ export class ViewModel {
 					]));
 					console.log("SAVE PB");
 				}
-				console.log("INSERTING", type, currResp);
 			}
+			//console.log("INSERTING", type, currResp);
 			let datArr = [
 				...Object.keys(currResp).map(key => currResp[key]),
 				moment(currResp.stamp).unix()
