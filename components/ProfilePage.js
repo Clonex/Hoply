@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, Alert } from 'react-native';
+import {ImagePicker} from "expo";
+import { StyleSheet, View, Alert, Image } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { ActionSheet, Container, Content, Text, Icon, Button, Grid, Col  } from 'native-base';
-import { ViewModel, def, transaction, api, navigate, getWall } from "./baseFunctions";
+import { ViewModel, def, transaction, api, navigate, getWall, askPermissionsAsync, CMDbuilder } from "./baseFunctions";
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
 
@@ -21,7 +22,9 @@ export default class ProfilePage extends React.Component {
       follows: 0,
       following: 0,
       posts: 0,
+      pb: false,
       postedData: [],
+      loading: false,
     };
     this.state = {...this.blankState};
     this.ViewModel = new ViewModel(props.db);
@@ -65,8 +68,51 @@ export default class ProfilePage extends React.Component {
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
     let postedData = await getWall(this.props.db, this.state.userID);
 
-    this.setState({liked: data.length > 0, follows: likes._array[0].count, following: liked._array[0].count, postedData});
+    let pb = await transaction(this.props.db, "SELECT img FROM profilePicture WHERE userID = ? ORDER BY unixStamp DESC LIMIT 1", [this.state.userID]);
+    console.log("PB", pb);
+    this.setState({
+      liked: data.length > 0,
+      follows: likes._array[0].count,
+      following: liked._array[0].count,
+      pb: pb.length > 0 ? pb._array[0].img : false,
+      postedData
+    });
   }
+
+  takePicture = async () => {
+		this.setState({
+			loading: true
+		});
+		let hasPerm = await askPermissionsAsync();
+		if(hasPerm)
+		{
+			let pickerResult = await ImagePicker.launchCameraAsync({
+        base64: true,
+        exif: false,
+        quality: 0.03,
+        allowsEditing: true,
+        aspect: [4, 3],
+			});
+			
+      if(!pickerResult.cancelled)
+      {
+        let body = CMDbuilder("BIN", pickerResult.base64);
+				this.props.ViewModel.do("pb", {
+				 body
+				}, () => {
+          this.setState({
+            pb: body
+          });
+        });
+        
+      }else{
+				this.setState({
+					loading: false
+				});
+			}
+		}
+	}
+
 
   /*
    * Gets the current profile info, from the ViewModel.
@@ -137,7 +183,7 @@ export default class ProfilePage extends React.Component {
         switch(buttonIndex)
         {
           case 0:
-
+            this.takePicture();
           break;
           case 1:
               Alert.alert(
@@ -182,6 +228,11 @@ export default class ProfilePage extends React.Component {
               ViewModel={this.props.ViewModel}
 							/>
             <View style={styles.topBG}>
+              {
+                this.state.pb ?
+                  <Image source={{uri: "data:image/jpeg;base64," + this.state.pb.split(" ")[1]}} style={{width: "100%", height: 92, position: "absolute", top: 0}} />
+                : null
+              }
               <Text style={styles.bigTitle}>
                   {def(this.state.userData.name)}
               </Text>

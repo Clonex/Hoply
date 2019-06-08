@@ -7,6 +7,10 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 {
 	try {
 		let paramVar = typeof params === "string" ? params : swaggerParams(params).join("&");
+		if(endpoint === "messages")
+		{
+			console.log("Dafuq" , "http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
+		}
 		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
@@ -15,12 +19,26 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 				"Content-type": "application/json",
 			}
 		});
-		return method === "GET" ? response.json() : response.status;
+		let resp = method === "GET" ? response.json() : response.status;
+		if(endpoint === "messages")
+		{
+			console.log(await resp);
+		}
+		return resp;
 	} catch(e) {
 		console.log("Error", e);
 		return false;
 	}
 
+}
+
+import { Permissions } from "expo";
+/*
+	* Asks and checks if the needed permissions has been given.
+	*/
+export async function askPermissionsAsync() {
+	const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
+	return status === "granted";
 }
 
 /*
@@ -215,7 +233,10 @@ export function transactions(db, callback)
 
 export function query(tx, SQL, items = [])
 {
-	return new Promise((resolve, reject) => tx.executeSql(SQL, items, (_, { rows }) => resolve(rows), null));
+	return new Promise((resolve, reject) => tx.executeSql(SQL, items, (_, { rows }) => resolve(rows), (a, b) => {
+		console.log("SQL err", SQL, items, "| Error data", a, b);
+		resolve([]);
+	}));
 }
 
 function encodeURL(v = "")
@@ -223,7 +244,8 @@ function encodeURL(v = "")
 	return encodeURIComponent(v).replace(/%20/g,'+');
 }
 
-function swaggerParams(data = {})
+
+function swaggerParams(data = {}, prefix = "=")
 {
 	let types = {
 		"=": "eq",
@@ -234,7 +256,7 @@ function swaggerParams(data = {})
 	};
 	return Object.keys(data).map(param => {
 		let d = data[param];
-		return param + "=" + types[d.t] + "." + encodeURL(d.v);
+		return param + prefix + types[d.t] + "." + encodeURL(d.v);
 	});
 }
 
@@ -248,10 +270,10 @@ export class ViewModel {
 		this.syncSlag = syncSlag;
 		this.syncData = {};
 	}
-
-	async multiGet(type = [])
+	
+	setUserID(id)
 	{
-
+		this.userID = id;
 	}
 
 	async do(type = "like", data = {}, callback = false)
@@ -263,6 +285,19 @@ export class ViewModel {
         followee: data.userID
 			});
 			await this.sync("follows");
+		}else if(type === "pb")
+		{
+			await this.do("message", {
+				sender: this.userID,
+				body: data.body,
+				receiver: PB_ID
+			});
+			await this.sync("messages");
+			if(callback)
+			{
+				callback();
+			}
+
 		}else if(type === "message")
 		{
 			/*await transaction(this.db, 
@@ -491,7 +526,7 @@ export class ViewModel {
 		if(type === "messages")
 		{
 			groupIDs = await this.get("groupIDs");
-			
+			console.log(groupIDs, this.userID);
 			let IDs = [
 				...groupIDs.map(d => d.id),
 				this.userID,
@@ -500,15 +535,14 @@ export class ViewModel {
 			]
 			.map(d => '"' + encodeURL(d) + '"')
 			.join(",");
-			
-			let urlParams = 'or=(sender.in.(' + IDs + '),receiver.in.(' + IDs + '))&' + swaggerParams(extraParams).join("&");
-			console.log("group", groupIDs, this.userID, "params =", urlParams);
-			responseArr = await api(type, urlParams);
+	
+			let query = "and=" + replaceAll(replaceAll(replaceAll("(" + swaggerParams(extraParams, ".").join(",") + ',or(sender.in.(' + IDs + '),receiver.in.(' + IDs + ')))', "(", "%28"), ")", "%29"), '"', "%22");
+			responseArr = await api(type, query);
 		}else{
 			responseArr = await api(type, extraParams);
 		}
 		let promises = [];
-
+		
 		//http://caracal.imada.sdu.dk/app2019/messages?or=(sender.in.("killme205", "GROUP_IDs"),receiver.in.("killme205", "GROUP_IDs"))
 		for(let i = 0; i < responseArr.length; i++)
 		{
@@ -522,13 +556,18 @@ export class ViewModel {
 				if(isGroup)
 				{
 					console.log("DA GROUP MADDAH");
-					//continue;
 				}
 				if(isProfilePic)
 				{
-					console.log("Save in PB table");
+					promises.push(transaction(this.db, 'INSERT INTO profilePicture (userID, img, unixStamp, msgID) VALUES (?, ?, ?, ?)', [
+						currResp.sender,
+						currResp.body,
+						moment(currResp.stamp).unix(),
+						currResp.id
+					]));
+					console.log("SAVE PB");
 				}
-				//console.log("INSERTING", type, currResp);
+				console.log("INSERTING", type, currResp);
 			}
 			let datArr = [
 				...Object.keys(currResp).map(key => currResp[key]),
@@ -582,3 +621,6 @@ export class ViewModel {
 	
 }
 
+function replaceAll(str, find, replace) {
+	return str.split(find).join(replace);
+}

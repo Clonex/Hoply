@@ -7,7 +7,7 @@ import {ImagePicker, Permissions, Location} from "expo";
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
-import {api, navigate, ISOparser, CMDbuilder} from "./baseFunctions";
+import {api, navigate, ISOparser, CMDbuilder, askPermissionsAsync} from "./baseFunctions";
 
 
 class MessagesPage extends React.Component {
@@ -60,27 +60,17 @@ class MessagesPage extends React.Component {
 		}, 3000);
 	}
 
-  /*
-   * Asks and checks if the needed permissions has been given.
-   */
-	askPermissionsAsync = async () => {
-		const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
-    return status === "granted";
-	}
+  
 
   /*
    * Gets the current location of the user, and shares it in the remote & local db.
    */
 	shareLocation = async () => {
-		this.props.ViewModel.get("groupIDs", (data) => {
-			console.log("Group IDs", data);
-		});
-		return;
 		this.setState({
 			loading: true
 		});
 
-		let hasPerm = await this.askPermissionsAsync();
+		let hasPerm = await askPermissionsAsync();
 		if(hasPerm)
 		{
 			let location = await Location.getCurrentPositionAsync({});
@@ -111,7 +101,7 @@ class MessagesPage extends React.Component {
 		this.setState({
 			loading: true
 		});
-		let hasPerm = await this.askPermissionsAsync();
+		let hasPerm = await askPermissionsAsync();
 		if(hasPerm)
 		{
 			let pickerResult = await ImagePicker.launchCameraAsync({
