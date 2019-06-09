@@ -1,10 +1,9 @@
 import React from 'react';
 import { StyleSheet, Text, ActivityIndicator } from 'react-native';
-
-import { Container, Header, Content, Form, Item, Input, Button, View, ActionSheet } from 'native-base';
-import {api, transaction} from "./baseFunctions";
-
+import { Container, Content, Form, Item, Input, Button, View, ActionSheet } from 'native-base';
 import uuid from "uuid/v4";
+
+import { api } from "./baseFunctions";
 
 export default class LoginPage extends React.Component {
   
@@ -20,13 +19,6 @@ export default class LoginPage extends React.Component {
     };
   }
 
-  /*
-   *
-   */
-  componentWillMount()
-  {
-    //syncUsers(this.props.db);
-  }
 
   /*
    * Checks whenever a user exists in the remote database, and adds if it dosent exist.
@@ -46,6 +38,9 @@ export default class LoginPage extends React.Component {
     }
   }
 
+  /*
+   * Sets the current user as the one given in @param data.
+   */
   setUser = async (data) => {
     this.props.ViewModel.setUserID(data.id);
     await this.props.ViewModel.get("users");
@@ -77,16 +72,14 @@ export default class LoginPage extends React.Component {
     {
      if(data.length > 1)
      {
-      ActionSheet.show(
-        {
+        ActionSheet.show({
           options: [
             ...data.map(d => d.id + "#" + d.name),
             "Cancel",
           ],
           cancelButtonIndex: data.length,
           title: "Multiple accounts found"
-        },
-        buttonIndex => {
+        }, buttonIndex => {
           if(buttonIndex === data.length)
           {
             this.setState({

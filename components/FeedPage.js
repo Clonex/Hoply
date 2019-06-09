@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Container, Content, Text, Icon, Button, Textarea } from 'native-base';
-import {navigate, getWall, WALL_ID, api, CMDbuilder} from "./baseFunctions";
 
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
+import { navigate, WALL_ID, api, CMDbuilder } from "./baseFunctions";
 
 export default class FeedPage extends React.Component {
 

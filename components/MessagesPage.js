@@ -2,13 +2,12 @@ import React from 'react';
 import { NavigationEvents } from "react-navigation";
 import { StyleSheet, View, KeyboardAvoidingView, ScrollView, ActivityIndicator } from 'react-native';
 import { Container, Text, List, ListItem, Icon, Button, Input, Item, Grid, Row, Col} from 'native-base';
-import {ImagePicker, Permissions, Location} from "expo";
+import { ImagePicker, Location } from "expo";
 
 import Header from "./UI/Header";
 import Message from "./UI/Message";
 import UserSelectorModal from "./UI/UserSelectorModal";
 import {api, navigate, ISOparser, CMDbuilder, askPermissionsAsync} from "./baseFunctions";
-
 
 class MessagesPage extends React.Component {
 

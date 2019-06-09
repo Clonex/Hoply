@@ -1,11 +1,12 @@
 import React from 'react';
-import {ImagePicker} from "expo";
+import { ImagePicker } from "expo";
 import { StyleSheet, View, Alert, Image } from 'react-native';
 import { NavigationEvents } from "react-navigation";
 import { ActionSheet, Container, Content, Text, Icon, Button, Grid, Col  } from 'native-base';
-import { ViewModel, def, transaction, api, navigate, getWall, askPermissionsAsync, CMDbuilder } from "./baseFunctions";
+
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
+import { ViewModel, def, transaction, api, navigate, getWall, askPermissionsAsync, CMDbuilder } from "./baseFunctions";
 
 export default class ProfilePage extends React.Component {
   
