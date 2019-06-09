@@ -1,11 +1,13 @@
 import React from 'react';
+import { AsyncStorage } from "react-native";
 import { SQLite } from 'expo';
 import { Root } from "native-base";
 
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databae20.db');
+
+const db = SQLite.openDatabase('databae21.db');
 
 export default class App extends React.Component {
   constructor()
@@ -19,6 +21,7 @@ export default class App extends React.Component {
     };
     this.ViewModel = new ViewModel(db);
   }
+
   componentDidMount()
   {
     db.transaction(tx => {
@@ -28,21 +31,26 @@ export default class App extends React.Component {
 
       // Group message tables.
       tx.executeSql('CREATE TABLE IF NOT EXISTS groups (name TEXT, id TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS groupUsers (groupID TEXT, userID TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS groupMessages (name TEXT, groupID TEXT, msgID TEXT, unixStamp INTEGER);');
+      /*tx.executeSql('CREATE TABLE IF NOT EXISTS groupUsers (groupID TEXT, userID TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS groupMessages (name TEXT, groupID TEXT, msgID TEXT, unixStamp INTEGER);');*/
 
       tx.executeSql('CREATE TABLE IF NOT EXISTS posts (userID TEXT, text TEXT, msgID TEXT, unixStamp INTEGER);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS profilePicture (userID TEXT, img TEXT, stamp TEXT, unixStamp INTEGER, msgID TEXT);');
 
     });
-
-    /*db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists items (id integer PRIMARY KEY NOT NULL, done int, value text);'
-      );
-    });*/
   }
   signOut = () => {
+    AsyncStorage.removeItem("login");
+    
+    db.transaction(tx => {
+      tx.executeSql('DELETE FROM messages');
+      tx.executeSql('DELETE FROM users');
+      tx.executeSql('DELETE FROM follows');
+      tx.executeSql('DELETE FROM groups');
+      tx.executeSql('DELETE FROM posts');
+      tx.executeSql('DELETE FROM profilePicture');
+    });
+
     this.setState({
       user: {
         id: false,
@@ -50,6 +58,7 @@ export default class App extends React.Component {
       }
     });
   }
+
   updateState = (key, value) => {
     let newState = {};
     if(key === "user")
@@ -62,6 +71,7 @@ export default class App extends React.Component {
     newState[key] = value;
     this.setState(newState);
   }
+
   render() {
     return <Root>
       {

@@ -22,10 +22,10 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 				"Content-type": "application/json",
 			}
 		});
-		let resp = method === "GET" ? response.json() : response.status;
+		let resp = method === "GET" ? (await response.json()) : response.status;
 		return resp;
 	} catch(e) {
-		console.log("Error", e);
+		console.log(endpoint, "Error", e);
 		return false;
 	}
 
@@ -536,9 +536,11 @@ export class ViewModel {
 				let rawData = await transaction(this.db, "SELECT follower, followee FROM follows ORDER BY follower ASC");
 				if(rawData.length > 0)
 				{
-					let andPairs = rawData._array.map(d => 'and(follower.eq."' + d.follower + '",followee.eq."' + d.followee + '")');
-					let check = await api(type, "select=follower,followee&or=(" + andPairs.join(",") + ")", "GET");
-					if(andPairs.length > check.length)
+					/*let andPairs = rawData._array.map(d => 'and(follower.eq."' + d.follower + '",followee.eq."' + d.followee + '")');
+					console.log("select=follower,followee&or=(" + andPairs.join(",") + ")");*/
+					//"select=follower,followee&or=(" + andPairs.join(",") + ")"
+					let check = await api(type, "select=follower,followee", "GET");
+					if(rawData.length > check.length)
 					{
 						let removeIDs = rawData._array.filter(data => {
 							return !check.find(other => other.follower === data.follower && other.followee === data.followee);

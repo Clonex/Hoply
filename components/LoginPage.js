@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, ActivityIndicator, AsyncStorage } from 'react-native';
 import { Container, Content, Form, Item, Input, Button, View, ActionSheet } from 'native-base';
 import uuid from "uuid/v4";
 
@@ -17,6 +17,23 @@ export default class LoginPage extends React.Component {
       username: "Eyo",
       loading: false,
     };
+  }
+
+  componentDidMount()
+  {
+    this.loginCheck();
+  }
+
+  loginCheck = async () => {
+    const data = await AsyncStorage.getItem('login');
+    if(data !== null)
+    {
+      this.setState({
+        loading: true,
+        loadingText: "Checking login..",
+      });
+      requestAnimationFrame(() => this.setUser(JSON.parse(data)));
+    }
   }
 
 
@@ -42,6 +59,8 @@ export default class LoginPage extends React.Component {
    * Sets the current user as the one given in @param data.
    */
   setUser = async (data) => {
+    AsyncStorage.setItem('login', JSON.stringify(data));
+
     this.props.ViewModel.setUserID(data.id);
     await this.props.ViewModel.get("users");
     await this.props.ViewModel.get("follows");
@@ -55,7 +74,7 @@ export default class LoginPage extends React.Component {
     setInterval(async () => {
       await this.props.ViewModel.get("messages");
     }, 3000);
-
+    
     this.props.updateData("user", data);
   }
 

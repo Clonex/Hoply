@@ -4,7 +4,7 @@ import { Container, Content, Text, Icon, Button, Textarea } from 'native-base';
 
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
-import { navigate, WALL_ID, api, CMDbuilder } from "./baseFunctions";
+import { navigate, WALL_ID, api } from "./baseFunctions";
 
 export default class FeedPage extends React.Component {
 
