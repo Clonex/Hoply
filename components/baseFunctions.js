@@ -48,10 +48,6 @@ export function maxString(string, length = 10)
 	return string.length > (length + 2) ? string.substring(0, length) + ".." : string;
 }
 
-export async function syncData(table = "messages", WHERE = [])
-{
-
-}
 
 
 
@@ -111,95 +107,6 @@ export function ISOparser(ISOstring)
 	return moment(ISOstring).fromNow();
 }
 
-
-export async function syncBasic(db, type, WHERE = "id")
-{
-	console.log("--------------------------");
-	console.log("SYNC BASIC USED!");
-	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
-	console.log("--------------------------");
-	return;
-	/*
-      Y NO UNIX TIMESTAMP! D:
-      let data = await transaction(db, 'SELECT stamp FROM users ORDER BY id DESC LIMIT 1');
-      let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
-      */
-	 let newUsers = await api(type);
-	 //Delete deleted data
-	 if(newUsers.length > 0)
-	 {
-		 let uIDs = newUsers.map(user => ('"' + user[WHERE] + '"')).join(",");
-		 await transaction(db, 'DELETE FROM ' + type + ' WHERE ' + WHERE + ' NOT IN (' + uIDs + ')')
-	}else{
-		transaction(db, 'DELETE FROM ' + type);
-	}
-	//Add new data
-	 for(let i = 0; i < newUsers.length; i++)
-	 {
-		 let user = newUsers[i];
-		 let userCheck = await transaction(db, 'SELECT ' +  WHERE + ' FROM ' + type + ' WHERE ' + WHERE + ' = ?', [user[WHERE]]);
-	   if(userCheck.length === 0)
-	   {
-		   switch(type)
-		   {
-					case "users":
-						transaction(db, 'insert into users (id, name, stamp) values (?, ?, ?)', [user.id, user.name, user.stamp]);
-					break;
-					case "follows":
-						transaction(db, 'insert into follows (follower, followee, stamp) values (?, ?, ?)', [user.follower, user.followee, user.stamp]);
-					break;
-		   }
-		 
-	   }
-	 }
-}
-export async function syncUsers(db)
-{
-	console.log("--------------------------");
-	console.log("SYNC UYSERS USED!");
-	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
-	console.log("--------------------------");
-	return;
-	/*
-      Y NO UNIX TIMESTAMP! D:
-      let data = await transaction(db, 'SELECT stamp FROM users ORDER BY id DESC LIMIT 1');
-      let extraParams = data.length > 0 ? {stamp: "gt." + data._array[0].stamp} : {};
-      */
-	 let newUsers = await api("users");
-  
-	 for(let i = 0; i < newUsers.length; i++)
-	 {
-	   let user = newUsers[i];
-	   let userCheck = await transaction(db, 'SELECT id FROM users WHERE id=?', [user.id]);
-	   if(userCheck.length === 0)
-	   {
-		 transaction(db, 'insert into users (id, name, stamp) values (?, ?, ?)', [user.id, user.name, user.stamp]);
-	   }
-	 }
-}
-
-export async function syncMessages(db)
-{
-	console.log("--------------------------");
-	console.log("SYNC MESSAGFES!");
-	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
-	console.log("--------------------------");
-	return;
-	let data = await transaction(db, 'SELECT id FROM messages ORDER BY id DESC LIMIT 1');
-	let extraParams = data.length > 0 ? {id: {t: ">", v: data._array[0].id}} : {};
-
-	let newMessages = await api("messages", extraParams);
-	for(let i = 0; i < newMessages.length; i++)
-	{
-		let message = newMessages[i];
-		let messageCheck = await transaction(db, 'SELECT id FROM messages WHERE id=?', [message.id]);
-		if(messageCheck.length === 0)
-		{
-			transaction(db, 'insert into messages (id, sender, receiver, body, stamp) values (?, ?, ?, ?, ?)', [message.id, message.sender, message.receiver, message.body, message.stamp]);
-		}
-	}
-
-}
 
 
 
@@ -342,11 +249,6 @@ export class ViewModel {
 				resolve();
 			});
 	
- 
-			/*let localPromises = data.users.map(user => transaction(this.db, 
-				`INSERT INTO groupUsers (groupID, userID) VALUES (?, ?)`, [groupID, user]
-			));
-			await Promise.all(localPromises);/
 
 			/*	
 				Server stuff
@@ -409,12 +311,6 @@ export class ViewModel {
 
 			if(callback)
 			{
-				/*data = (await transaction(this.db, 
-								`SELECT 
-									* 
-								FROM groups 
-								WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
-								`, where))._array;*/
 				groupIDs = await this.get("groupIDs");
 				groupData = (await transaction(this.db, 
 								`SELECT 
@@ -660,35 +556,6 @@ export class ViewModel {
 			return data;
 		}
 	}
-	/*{
-					receiver: {
-						t: "=",
-						v: WALL_ID
-					}
-				}*/
-		translateWHERE(where = {})
-		{
-			let ret = {
-				sql: [],
-				items: []
-			};
-			Object.keys(where).map((key) => {
-				let curr = where[key];
-				ret.sql.push(key + curr.t + "?");
-				ret.items.push(curr.v);
-				//ret.sql = ret.sql + " " + key + curr.t + "?";
-				//console.log(key, "=", curr);
-			});
-			ret.sql = ret.sql.join(" AND ");
-			if(ret.sql.length > 0)
-			{
-				ret.sql = " WHERE " + ret.sql;
-			}
-			console.log(ret);
-			return ret;
-		}
-	
-	
 }
 
 function replaceAll(str, find, replace) {

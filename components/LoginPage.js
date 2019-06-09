@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, ActivityIndicator } from 'react-native';
 
 import { Container, Header, Content, Form, Item, Input, Button, View } from 'native-base';
-import {api, syncMessages, transaction, syncUsers} from "./baseFunctions";
+import {api, transaction} from "./baseFunctions";
 
 import uuid from "uuid/v4";
 

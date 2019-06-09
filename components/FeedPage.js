@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Container, Content, Text, Icon, Button, Textarea } from 'native-base';
-import {navigate, getWall, WALL_ID, api, CMDbuilder, syncMessages} from "./baseFunctions";
+import {navigate, getWall, WALL_ID, api, CMDbuilder} from "./baseFunctions";
 
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
