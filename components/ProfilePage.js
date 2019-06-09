@@ -6,7 +6,7 @@ import { ActionSheet, Container, Content, Text, Icon, Button, Grid, Col  } from 
 
 import Header from "./UI/Header";
 import Cards from "./UI/Cards";
-import { ViewModel, def, transaction, api, navigate, getWall, askPermissionsAsync, CMDbuilder } from "./baseFunctions";
+import { ViewModel, def, transaction, api, navigate, askPermissionsAsync, CMDbuilder } from "./baseFunctions";
 
 export default class ProfilePage extends React.Component {
   

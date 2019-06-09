@@ -48,46 +48,17 @@ export function maxString(string, length = 10)
 	return string.length > (length + 2) ? string.substring(0, length) + ".." : string;
 }
 
-
-
-
-export async function getWall(db, user = false)
-{
-	try {
-		let data;
-		if(user)
-		{
-			data = await transaction(db, `SELECT 
-																				*,
-																				(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
-																			FROM messages WHERE 
-																				receiver = ? AND sender = ?
-																			ORDER BY id DESC `, [WALL_ID, user]);
-		}else{
-			data = await transaction(db, `SELECT 
-																				*,
-																				(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
-																			FROM messages 
-																				WHERE receiver = ? 
-																			ORDER BY id DESC `, [WALL_ID]);
-		}
-		if(data)
-		{
-			return data._array;
-		}
-	} catch(e)
-	{
-		console.log("Err", e);
-	}
-
-	return [];
-}
-
+/*
+ * @returns a string used by the message commands.
+ */
 export function CMDbuilder(type, data)
 {
 	return "%" + type + " " + data;
 }
 
+/*
+ * @returns a object specifying the data from command given in @param data.
+ */
 export function CMDparser(data)
 {
 	if(data && data.substring(0, 1) === "%")
@@ -100,22 +71,28 @@ export function CMDparser(data)
 	}
 	return {cmd: false, data: false};
 }
-//.fromNow();
+
+
+/*
+* @returns a string containing time since the date.
+*/
 import moment from "moment";
 export function ISOparser(ISOstring)
 {
 	return moment(ISOstring).fromNow();
 }
 
-
-
-
-
+/*
+ * @returns the @params val if it is true otherwise it returns @param fallback.
+ */
 export function def(val, fallback = "")
 {
 	return val ? val : fallback;
 }
 
+/*
+ * Navigates to the given @param route, with a @param payload.
+ */
 import { NavigationActions } from 'react-navigation';
 export function navigate(route, me, payload = {})
 {
@@ -126,6 +103,9 @@ export function navigate(route, me, payload = {})
 	me.props.navigation.dispatch(navigateAction);
 }
 
+/*
+ * @returns a promise containing the transaction.
+ */
 export function transaction(db, SQL, items = [])
 {
 	return new Promise(r => {
@@ -135,6 +115,10 @@ export function transaction(db, SQL, items = [])
 		});
 	});
 }
+
+/*
+ * @returns a promise containing multiple transactions.
+ */
 export function transactions(db, callback)
 {
 	return new Promise(r => {
@@ -144,7 +128,9 @@ export function transactions(db, callback)
 	});
 }
 
-
+/*
+ * Executes the given @param SQL in the given transaction @param tx.
+ */
 export function query(tx, SQL, items = [])
 {
 	return new Promise((resolve, reject) => tx.executeSql(SQL, items, (_, { rows }) => resolve(rows), (a, b) => {
@@ -153,11 +139,17 @@ export function query(tx, SQL, items = [])
 	}));
 }
 
+/*
+ * @returns a url-safe string.
+ */
 function encodeURL(v = "")
 {
 	return encodeURIComponent(v).replace(/%20/g,'+');
 }
 
+/*
+ * Parses a @param data object cointaining basic postgrest operations.
+ */
 function swaggerParams(data = {}, prefix = "=")
 {
 	let types = {
@@ -173,10 +165,10 @@ function swaggerParams(data = {}, prefix = "=")
 	});
 }
 
-import uuid from "uuid/v4";
 /*
- * The ViewModel class, which makes it easier to post/get data from the local and remote database.
- */
+* The ViewModel class, which makes it easier to post/get data from the local and remote database.
+*/
+import uuid from "uuid/v4";
 export class ViewModel {
 	constructor(db, userID = false, syncSlag = 100)
 	{
@@ -187,11 +179,17 @@ export class ViewModel {
 		this.syncDeletedData = {};
 	}
 	
+	/*
+	 * Set the userID.
+	 */
 	setUserID(id)
 	{
 		this.userID = id;
 	}
 
+	/*
+	 * Used to perform an action, like send a message etc.
+	 */
 	async do(type = "like", data = {}, callback = false)
 	{
 		if(type === "like")
@@ -216,18 +214,11 @@ export class ViewModel {
 
 		}else if(type === "message")
 		{
-			/*await transaction(this.db, 
-				`INSERT INTO messages 
-				(id, sender, receiver, body, stamp, unixStamp) 
-					VALUES 
-				(?, ?, ?, ? ,? ,?)`, []);*/
 			await api("messages", {}, "POST", data);
-			//await this.sync("messages");
 			if(callback)
 			{
 				callback();
 			}
-
 		}else if(type === "createUser")
 		{
 			let respData = await api("users", {}, "POST", {id: data.id, name: data.name});
@@ -294,6 +285,9 @@ export class ViewModel {
 		}
 	}
 
+	/*
+	 * Used to get something, like the messages etc.
+	 */
 	async get(type = "messages", callback = null, where = []){
 		let data;
 		let groupIDs;
@@ -422,6 +416,9 @@ export class ViewModel {
 		}
 	}
 
+	/*
+	 * Synchronizes the given table no matter what.
+	 */
 	async forceSync(type, where = {})
 	{
 		let data = await transaction(this.db, 'SELECT * FROM ' + type + ' ORDER BY unixStamp DESC LIMIT 1');
@@ -536,9 +533,6 @@ export class ViewModel {
 				let rawData = await transaction(this.db, "SELECT follower, followee FROM follows ORDER BY follower ASC");
 				if(rawData.length > 0)
 				{
-					/*let andPairs = rawData._array.map(d => 'and(follower.eq."' + d.follower + '",followee.eq."' + d.followee + '")');
-					console.log("select=follower,followee&or=(" + andPairs.join(",") + ")");*/
-					//"select=follower,followee&or=(" + andPairs.join(",") + ")"
 					let check = await api(type, "select=follower,followee", "GET");
 					if(rawData.length > check.length)
 					{
@@ -563,7 +557,6 @@ export class ViewModel {
 		await this.syncDeleted(type);
 		if(Object.keys(where) > 0 || !curr || (Date.now() - curr) > this.syncSlag)
 		{
-			//console.log("Syncing", type, "time =", this.syncData[type], "Diff =", (Date.now() - curr));
 			this.syncData[type] = Date.now();
 			let data = await this.forceSync(type, where);
 			this.syncData[type] = Date.now();
@@ -572,6 +565,9 @@ export class ViewModel {
 	}
 }
 
+/*
+ * Replaces all occurrences of the @param find with @param replace in the given string @str.
+ */
 function replaceAll(str, find, replace) {
 	return str.split(find).join(replace);
 }
