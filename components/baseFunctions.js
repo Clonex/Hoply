@@ -360,6 +360,11 @@ export class ViewModel {
 				userID: groupID
 			}));
 			await Promise.all(promises);
+			await this.do("message", {
+				sender: this.userID,
+				body: "Created a new group chat!",
+				receiver: groupID
+			});
 
 			//DONE
 			console.log("Group created!", promises);
@@ -389,6 +394,7 @@ export class ViewModel {
 
 	async get(type = "messages", callback = null, where = []){
 		let data;
+		let groupIDs;
 		let groupData;
 		if(type === "messages")
 		{
@@ -403,19 +409,33 @@ export class ViewModel {
 
 			if(callback)
 			{
-				data = (await transaction(this.db, 
+				/*data = (await transaction(this.db, 
 								`SELECT 
 									* 
 								FROM groups 
 								WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
-								`, where))._array;
-				console.log("Groups", data);
+								`, where))._array;*/
+				groupIDs = await this.get("groupIDs");
+				groupData = (await transaction(this.db, 
+								`SELECT 
+									* 
+								FROM groups 
+								WHERE id IN (?)`, groupIDs.map(d => d.id)))._array;
+				console.log("Groups", data, "ids", groupIDs);
 
 				data = (await transaction(this.db, sqlQuery))._array;
-				callback(data);
+				callback({data, groups: groupData});
 			}
 			await this.sync("messages");//await syncMessages(this.db);
+			groupIDs = await this.get("groupIDs");
+			groupData = (await transaction(this.db, 
+							`SELECT 
+								* 
+							FROM groups 
+							WHERE id IN (?)`, groupIDs.map(d => d.id)))._array;
 			data = (await transaction(this.db, sqlQuery))._array;
+
+			data = {data, groups: groupData};
 			//console.log("Messages2 data", data);
 		}else if(type === "follows")
 		{
@@ -535,21 +555,27 @@ export class ViewModel {
 		}else{
 			responseArr = await api(type, extraParams);
 		}
-		let promises = [];
 		
-		//http://caracal.imada.sdu.dk/app2019/messages?or=(sender.in.("killme205", "GROUP_IDs"),receiver.in.("killme205", "GROUP_IDs"))
+		let promises = [];
 		for(let i = 0; i < responseArr.length; i++)
 		{
 			let currResp = responseArr[i];
 			let query = 'INSERT INTO ' + type + ' (' + Object.keys(currResp).join(",") + ', "unixStamp") VALUES (' + Object.keys(currResp).map(key => "?").join(",") + ', ?)';
 			if(type === "messages")
 			{
-				let isGroup = !!groupIDs.find(d => d === currResp.sender);
+				let isGroup = groupIDs.find(d => d.id === currResp.receiver);
 				let isPost = false;
 				let isProfilePic = currResp.receiver === PB_ID;
 				if(isGroup)
 				{
-					console.log("DA GROUP MADDAH");
+					promises.push(transaction(this.db, 'INSERT INTO groups (name, id) VALUES (?, ?)', [
+						"TEST",
+						currResp.receiver,
+					]));
+				}
+				if(isPost)
+				{
+					console.log("DA post MADDAH");
 				}
 				if(isProfilePic)
 				{
@@ -559,10 +585,9 @@ export class ViewModel {
 						moment(currResp.stamp).unix(),
 						currResp.id
 					]));
-					console.log("SAVE PB");
 				}
+				//console.log("INSERTING", type, currResp);
 			}
-			//console.log("INSERTING", type, currResp);
 			let datArr = [
 				...Object.keys(currResp).map(key => currResp[key]),
 				moment(currResp.stamp).unix()
@@ -587,7 +612,7 @@ export class ViewModel {
 				let rawData = await transaction(this.db, "SELECT id FROM " + type + " ORDER BY id ASC");
 				if(rawData.length > 0)
 				{
-					let parsedData = rawData._array.map(d => '"' + d.id + '"');
+					let parsedData = rawData._array.filter(d => d.length > 0).map(d => '"' + d.id + '"');
 					let check = await api(type, "select=id&id=in.(" + parsedData.join(",") + ")", "GET");
 					if(parsedData.length > check.length)
 					{

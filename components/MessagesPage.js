@@ -22,6 +22,7 @@ class MessagesPage extends React.Component {
 		this.blankState = {
 			selectedMessage: false,
 			messages: [],
+			groups: [],
 			currMsg: "",
 			selectingUser: false,
 			loading: false,
@@ -50,13 +51,14 @@ class MessagesPage extends React.Component {
 
 		this.props.ViewModel.get("messages", (data) => {
 			this.setState({
-				messages: data
+				messages: data.data,
+				groups: data.groups,
 			});
 		}, [this.props.user.id]);
 
 		this.interval = setInterval(async () => {
 			let messages = await this.props.ViewModel.get("messages");
-			this.setState({messages});
+			this.setState({messages: messages.data, groups: messages.groups});
 		}, 3000);
 	}
 
@@ -84,7 +86,8 @@ class MessagesPage extends React.Component {
 				{
 					this.props.ViewModel.get("messages", (data) => {
 						this.setState({
-							messages: data
+							messages: data.data,
+							groups: data.groups,
 						});
 					});
 				}
@@ -117,12 +120,10 @@ class MessagesPage extends React.Component {
 					body: CMDbuilder("BIN", pickerResult.base64),
 					receiver: this.state.selectedMessage
 				}, () => {
-					console.time("send");
 					this.props.ViewModel.get("messages", (data) => {
-					console.timeEnd("send");
-
 						this.setState({
-							messages: data,
+							messages: data.data,
+							groups: data.groups,
 							loading: false
 						});
 					});
@@ -157,6 +158,14 @@ class MessagesPage extends React.Component {
    */
 	getMessages = (to, senderID) => {
 		let ret = this.state.messages.filter(message => (message.receiver === senderID && message.sender === to) || (message.receiver === to && message.sender === senderID));
+		return ret.reverse();
+	}
+
+  /*
+   * Finds messages from and to the specified users.
+   */
+	getGroupMessages = (groupID) => {
+		let ret = this.state.messages.filter(message => (message.receiver === groupID));
 		return ret.reverse();
 	}
 
@@ -201,7 +210,8 @@ class MessagesPage extends React.Component {
   render() {
 		let myMessages = this.state.messages.filter(message => message.sender === this.props.user.id || message.receiver === this.props.user.id);
 		let unique = [];
-		let userMessages = this.getMessages(this.state.selectedMessage, this.props.user.id);
+		let isGroup = this.state.selectedMessage ? this.state.groups.find(d => d.id === this.state.selectedMessage) : false;
+		let userMessages = isGroup ? this.getGroupMessages(this.state.selectedMessage) : this.getMessages(this.state.selectedMessage, this.props.user.id);
 		myMessages.forEach(message => {
 			let id = message.sender === this.props.user.id ? message.receiver : message.sender;
 			if(unique.indexOf(id) === -1)
@@ -233,6 +243,7 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		let userTitle = userMessages.length > 0 ? this.senderOrRecieverName(this.state.selectedMessage, userMessages[0]) : this.state.selectedMessage;
+		let middleTitle = isGroup ? isGroup.name : userTitle;
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						{
@@ -250,13 +261,13 @@ class MessagesPage extends React.Component {
               ViewModel={this.props.ViewModel}
               navigation={this.props.navigation}
 							middleContent={this.state.selectedMessage ? 
-															<Text onPress={() => navigate("Profile", this, {id: this.state.selectedMessage})}>
-																{userTitle}
+															<Text onPress={isGroup ? () => {} : () => navigate("Profile", this, {id: this.state.selectedMessage})}>
+																{middleTitle}
 															</Text>
 															:
 															<Text>Messages</Text>
 														}
-							middleTitle={this.state.selectedMessage ? this.state.selectedMessage : "Messages"}
+							middleTitle={this.state.selectedMessage ? middleTitle : "Messages"}
 							rightContent={this.state.selectedMessage ? 
 							<Button transparent style={{width: 50}}>
 								<Text style={styles.header}>Invite</Text>
@@ -308,13 +319,15 @@ class MessagesPage extends React.Component {
 										unique.length > 0 ? 
 											unique.map((chat, key) => {
 												let latestMsg = this.getMessages(chat, this.props.user.id);
-												let msg = latestMsg[latestMsg.length - 1].body.split("\n")[0];
+												let lastMsg = latestMsg[latestMsg.length - 1];
+												let isGroup = this.state.groups.find(d => d.id === lastMsg.receiver);
+												let msg = lastMsg.body.split("\n")[0];
 												return (<ListItem onPress={() => requestAnimationFrame(() => this.focusChat(chat))} key={key}>
 													<Grid>
 														<Col>
 															<Row>
 																<Col style={{flex: 1, alignItems: "flex-start"}}>
-																	<Text style={{height: 20, width: "100%"}}>{this.senderOrRecieverName(chat, latestMsg[0])}</Text>
+																	<Text style={{height: 20, width: "100%"}}>{isGroup ? ("GROUP - " + isGroup.name) : this.senderOrRecieverName(chat, latestMsg[0])}</Text>
 																</Col>
 																<Col style={{flex: 1, flexDirection: "row-reverse"}}>
 																	<Text style={{height: 20, fontSize: 10, textAlign: "right", width: "90%", marginRight: "10%"}} textAlign="right">{ISOparser(latestMsg[latestMsg.length - 1].stamp)}</Text>
