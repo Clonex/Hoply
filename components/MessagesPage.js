@@ -60,8 +60,6 @@ class MessagesPage extends React.Component {
 		}, 3000);
 	}
 
-  
-
   /*
    * Gets the current location of the user, and shares it in the remote & local db.
    */
@@ -235,7 +233,6 @@ class MessagesPage extends React.Component {
 							/>;
 		}
 		let userTitle = userMessages.length > 0 ? this.senderOrRecieverName(this.state.selectedMessage, userMessages[0]) : this.state.selectedMessage;
-
 		return (<Container>
 						<NavigationEvents onWillFocus={this.mounted} onWillBlur={this.blurred}/>
 						{

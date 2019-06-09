@@ -5,7 +5,7 @@ import { Root } from "native-base";
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databa29.db');
+const db = SQLite.openDatabase('databae05.db');
 
 export default class App extends React.Component {
   constructor()
@@ -24,7 +24,9 @@ export default class App extends React.Component {
     db.transaction(tx => {
       tx.executeSql('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY NOT NULL, sender TEXT, receiver TEXT, body TEXT, stamp TEXT, unixStamp INTEGER);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY NOT NULL, name TEXT, stamp TEXT, unixStamp INTEGER);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS follows (follower TEXT, followee TEXT, stamp TEXT, unixStamp INTEGER);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS follows (follower TEXT, followee TEXT, stamp TEXT, unixStamp INTEGER, PRIMARY KEY (follower, followee));', [], () => {
+
+      }, (a, b) => console.log("Table err", a, b));
 
       // Group message tables.
       tx.executeSql('CREATE TABLE IF NOT EXISTS groups (name TEXT, id TEXT);');

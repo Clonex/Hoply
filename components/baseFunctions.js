@@ -3,6 +3,9 @@ export const COMMENTS_ID = "ae3c71d8-e0b6-4b7c-a762-1536d81fde49";
 export const LIKES_ID = "dffaa264-5418-4c1f-aa9c-f6493e0f915c";
 export const PB_ID = "d7d64795-9c9d-4a4f-b2d5-116d452e378f";
 
+/*
+ * Creates a appropriate request to the Postgres API.
+ */
 export async function api(endpoint = "users", params = {}, method = "GET", payload = false)
 {
 	try {
@@ -152,6 +155,11 @@ export async function syncBasic(db, type, WHERE = "id")
 }
 export async function syncUsers(db)
 {
+	console.log("--------------------------");
+	console.log("SYNC UYSERS USED!");
+	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
+	console.log("--------------------------");
+	return;
 	/*
       Y NO UNIX TIMESTAMP! D:
       let data = await transaction(db, 'SELECT stamp FROM users ORDER BY id DESC LIMIT 1');
@@ -172,7 +180,10 @@ export async function syncUsers(db)
 
 export async function syncMessages(db)
 {
-
+	console.log("--------------------------");
+	console.log("SYNC MESSAGFES!");
+	console.log("Use ViewModel instead mafacka!!!", type, WHERE);
+	console.log("--------------------------");
 	return;
 	let data = await transaction(db, 'SELECT id FROM messages ORDER BY id DESC LIMIT 1');
 	let extraParams = data.length > 0 ? {id: {t: ">", v: data._array[0].id}} : {};
@@ -240,7 +251,6 @@ function encodeURL(v = "")
 	return encodeURIComponent(v).replace(/%20/g,'+');
 }
 
-
 function swaggerParams(data = {}, prefix = "=")
 {
 	let types = {
@@ -257,7 +267,9 @@ function swaggerParams(data = {}, prefix = "=")
 }
 
 import uuid from "uuid/v4";
-
+/*
+ * The ViewModel class, which makes it easier to post/get data from the local and remote database.
+ */
 export class ViewModel {
 	constructor(db, userID = false, syncSlag = 100)
 	{
@@ -265,6 +277,7 @@ export class ViewModel {
 		this.userID = userID;
 		this.syncSlag = syncSlag;
 		this.syncData = {};
+		this.syncDeletedData = {};
 	}
 	
 	setUserID(id)
@@ -379,45 +392,26 @@ export class ViewModel {
 		let groupData;
 		if(type === "messages")
 		{
-			//http://caracal.imada.sdu.dk/app2019/messages?or=(sender.eq.killme1%2Creceiver.eq.killme1)
 			let sqlQuery = 
 			`SELECT 
 						*, 
 						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName, 
 						(SELECT name FROM users WHERE id = messages.receiver LIMIT 1) as receiverName
 				FROM messages 
-					WHERE receiver NOT IN ("` + WALL_ID + `", "aa` + PB_ID + `")
+					WHERE receiver NOT IN ("` + WALL_ID + `", "` + PB_ID + `")
 				ORDER BY id DESC`;
 
-		/*	data = await transactions(this.db, async (tx, resolve) => {
-				let groupTest = await query(tx, `SELECT 
-								* 
-							FROM groups 
-							WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
-							`, where);
-							console.log(sqlQuery);
-				let otherTest = await query(tx, sqlQuery, []);
-				console.log("Groups", groupTest, otherTest);
-				resolve(otherTest._array);
-			});
-*/
-			
-		
 			if(callback)
 			{
-			
-				/*data = (await transaction(this.db, 
+				data = (await transaction(this.db, 
 								`SELECT 
 									* 
 								FROM groups 
 								WHERE id IN (SELECT groupID FROM groupUsers WHERE userID = ?)
 								`, where))._array;
-				console.log("Groups", data);*/
+				console.log("Groups", data);
 
-				data = (await transaction(this.db, "SELECT * FROM messages"))._array;
-				console.log("Messages data", data);
 				data = (await transaction(this.db, sqlQuery))._array;
-
 				callback(data);
 			}
 			await this.sync("messages");//await syncMessages(this.db);
@@ -578,9 +572,60 @@ export class ViewModel {
 		await Promise.all(promises);
 	}
 
+	/*
+	 * Checks the given table for deleted data.
+	 */
+	async syncDeleted(type, where = {})
+	{
+		let curr = this.syncDeletedData[type];
+		let minCheck = 5000;
+		if(Object.keys(where) > 0 || !curr || (Date.now() - curr) > minCheck)
+		{
+			this.syncDeletedData[type] = Date.now();
+			if(type === "messages" || type === "users")
+			{
+				let rawData = await transaction(this.db, "SELECT id FROM " + type + " ORDER BY id ASC");
+				if(rawData.length > 0)
+				{
+					let parsedData = rawData._array.map(d => '"' + d.id + '"');
+					let check = await api(type, "select=id&id=in.(" + parsedData.join(",") + ")", "GET");
+					if(parsedData.length > check.length)
+					{
+						check = check.map(d => d.id);
+						let removeIDs = rawData._array.find(d => check.indexOf(d) === -1);
+						console.log("Something has been deleted in", type, "remove", removeIDs);
+					}
+				}
+			}else if(type === "follows")
+			{
+				let rawData = await transaction(this.db, "SELECT follower, followee FROM follows ORDER BY follower ASC");
+				if(rawData.length > 0)
+				{
+					let andPairs = rawData._array.map(d => 'and(follower.eq."' + d.follower + '",followee.eq."' + d.followee + '")');
+					let check = await api(type, "select=follower,followee&or=(" + andPairs.join(",") + ")", "GET");
+					if(andPairs.length > check.length)
+					{
+						let removeIDs = rawData._array.filter(data => {
+							return !check.find(other => other.follower === data.follower && other.followee === data.followee);
+						});
+						console.log(rawData.length, check.length);
+						console.log("Something has been deleted in", type, "remove", removeIDs);
+						let promises = removeIDs.map(d => transaction(this.db, "DELETE FROM follows WHERE follower = ? AND followee = ?", [d.follower, d.followee]));
+						await Promise.all(promises);
+					}
+				}
+			}
+			this.syncDeletedData[type] = Date.now();
+		}
+	}
+
+	/*
+	 * Synchronizes the given table, if it has been more time than this.syncSlag.
+	 */
 	async sync(type, where = {})
 	{
 		let curr = this.syncData[type];
+		await this.syncDeleted(type);
 		if(Object.keys(where) > 0 || !curr || (Date.now() - curr) > this.syncSlag)
 		{
 			//console.log("Syncing", type, "time =", this.syncData[type], "Diff =", (Date.now() - curr));
