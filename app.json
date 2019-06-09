@@ -23,7 +23,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.clonex.hoply"
+    },
+    "android": {
+      "package": "com.clonex.hoply"
     }
   }
 }
