@@ -13,49 +13,34 @@ export default class Cards extends React.Component {
    */
   render() {
     let data = this.props.data;
-    let cmd = CMDparser(data.body);
+    let cmd = CMDparser(data.text);
+    let pb = CMDparser(data.pb);
     return (<Card>
         <CardItem>
           <Left>
-            <TouchableWithoutFeedback onPress={() => navigate("Profile", this, {id: data.sender})}>
-              <Thumbnail source={{uri: 'https://i.imgur.com/NjbrJAr.png?1'}}/>
+            <TouchableWithoutFeedback onPress={() => navigate("Profile", this, {id: data.userID})}>
+              <Thumbnail source={{uri: pb.cmd === "BIN" ?  ("data:image/jpeg;base64," + pb.data) : 'https://i.imgur.com/NjbrJAr.png?1'}}/>
             </TouchableWithoutFeedback>
             <Body>
-              <Text onPress={() => navigate("Profile", this, {id: data.sender})}>{data.senderName}</Text>
+              <Text onPress={() => navigate("Profile", this, {id: data.userID})}>{data.name}</Text>
               <Text note>
-                {data.sender}
+                {data.userID}
               </Text>
             </Body>
           </Left>
         </CardItem>
         <CardItem cardBody>
-          <Text>
-          {
-            cmd.data.message
-          }
+          <Text style={styles.text}>
+            {
+              cmd.data ? cmd.data.message : data.text
+            }
           </Text>
-          {/*<Image source={{uri: 'https://assets.saatchiart.com/saatchi/315283/art/2701261/additional_bbb7245f37ac6539278837e140fd2804fd94a8b7-8.jpg'}} style={{height: 200, width: null, flex: 1}}/> */}
-
         </CardItem>
         <CardItem>
-          <Row>
-            <Col>
-              <Button transparent>
-                <Icon active name="thumbs-up" />
-                <Text>12</Text>
-              </Button>
-            </Col>
-            <Col>
-              <Button transparent>
-                <Icon name="chatbubbles" style={styles.notActive}/>
-                <Text style={styles.notActive}>4</Text>
-              </Button>
-            </Col>
-          </Row>
           
-          <Right>
+          <Left>
             <Text style={styles.date}>{ISOparser(data.stamp)}</Text>
-          </Right>
+          </Left>
         </CardItem>
       </Card>);
   }
@@ -65,6 +50,10 @@ const styles = StyleSheet.create({
   btn: {
     width: 10,
   },
+  text: {
+    marginLeft: 10,
+    marginRight: 10,
+  }, 
   date: {
     fontSize: 10,
   },

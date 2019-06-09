@@ -81,8 +81,7 @@ export default class ProfilePage extends React.Component {
     
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
-    let postedData = await getWall(this.props.db, this.state.userID);
-
+    let postedData = await this.props.ViewModel.get("getWall", false, [this.state.userID]);
     let pb = await transaction(this.props.db, "SELECT img FROM profilePicture WHERE userID = ? ORDER BY unixStamp DESC LIMIT 1", [this.state.userID]);
  
     this.setState({
@@ -292,7 +291,7 @@ export default class ProfilePage extends React.Component {
               this.state.postedData.length > 0 ?
                 this.state.postedData.map((post, key) => <Cards key={key} data={post} navigation={this.props.navigation}/>)
               : 
-              <Text>
+              <Text style={styles.centerText}>
                   No posts..
               </Text>
             }
@@ -309,6 +308,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 15,
   },
+  centerText: {width: "100%", textAlign: "center"},
   infoSubText: {
     fontSize: 13,
   },

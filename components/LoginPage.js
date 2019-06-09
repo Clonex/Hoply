@@ -78,7 +78,7 @@ export default class LoginPage extends React.Component {
             "Cancel",
           ],
           cancelButtonIndex: data.length,
-          title: "Multiple accounts found"
+          title: "Multiple accounts found!"
         }, buttonIndex => {
           if(buttonIndex === data.length)
           {

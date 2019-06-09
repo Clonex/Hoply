@@ -338,27 +338,31 @@ export class ViewModel {
 			
 		}else if(type === "getWall")
 		{
-			data = [];
-			//CREATE NEW TABLE!
-		/*	let query = 
-			`SELECT 
-						*,
-						(SELECT name FROM users WHERE id = messages.sender LIMIT 1) as senderName
-				FROM messages 
-					WHERE receiver = ?
-				ORDER BY unixStamp DESC`;
+			let query = 
+				where.length > 0 ? 
+					`SELECT 
+								*,
+								(SELECT img from profilePicture WHERE userID = ? ORDER BY unixStamp DESC LIMIT 1) as pb,
+								(SELECT name from users WHERE id = ? LIMIT 1) as name
+						FROM posts 
+							WHERE userID = ?
+						ORDER BY unixStamp DESC` 
+						: 
+					`SELECT 
+								*,
+								(SELECT img from profilePicture WHERE userID = ? ORDER BY unixStamp DESC LIMIT 1) as pb,
+								(SELECT name from users WHERE id = ? LIMIT 1) as name
+						FROM posts 
+							WHERE userID IN (SELECT followee FROM follows WHERE follower = ?) OR userID = ?
+						ORDER BY unixStamp DESC`;
+				let newWhere = where.length > 0 ?  [...where, ...where, ...where] : [this.userID, this.userID, this.userID, this.userID];
 				if(callback)
 				{
-					data = (await transaction(this.db, query, [WALL_ID]))._array;
+					data = (await transaction(this.db, query, newWhere))._array;
 					callback(data);
 				}
-				await this.sync("messages", {
-					receiver: {
-						t: "=",
-						v: WALL_ID
-					}
-				});
-				data = (await transaction(this.db, query, [WALL_ID]))._array;*/
+				await this.sync("messages");
+				data = (await transaction(this.db, query, newWhere))._array;
 		}else if(type === "searchUsers")
 		{
 			let query = "SELECT * FROM users WHERE name LIKE ? ORDER BY unixStamp DESC";
@@ -460,10 +464,11 @@ export class ViewModel {
 			if(type === "messages")
 			{
 				let isGroup = groupIDs.find(d => d.id === currResp.receiver);
-				let isPost = false;
+				let isPost = currResp.receiver === WALL_ID;
 				let isProfilePic = currResp.receiver === PB_ID;
 				if(isGroup)
 				{
+					//console.log("GROUP data", currResp);
 					promises.push(transaction(this.db, 'INSERT INTO groups (name, id) VALUES (?, ?)', [
 						"TEST",
 						currResp.receiver,
@@ -471,14 +476,21 @@ export class ViewModel {
 				}
 				if(isPost)
 				{
-					console.log("DA post MADDAH");
+					promises.push(transaction(this.db, 'INSERT INTO posts (userID, text, msgID, unixStamp) VALUES (?, ?, ?, ?)', [
+						currResp.sender,
+						currResp.body,
+						currResp.id,
+						moment(currResp.stamp).unix(),
+					]));
 				}
 				if(isProfilePic)
 				{
-					promises.push(transaction(this.db, 'INSERT INTO profilePicture (userID, img, unixStamp, msgID) VALUES (?, ?, ?, ?)', [
+					console.log("Saving piucture!");
+					promises.push(transaction(this.db, 'INSERT INTO profilePicture (userID, img, stamp, unixStamp, msgID) VALUES (?, ?, ?, ?, ?)', [
 						currResp.sender,
 						currResp.body,
 						moment(currResp.stamp).unix(),
+						currResp.stamp,
 						currResp.id
 					]));
 				}
@@ -515,6 +527,8 @@ export class ViewModel {
 						check = check.map(d => d.id);
 						let removeIDs = rawData._array.find(d => check.indexOf(d) === -1);
 						console.log("Something has been deleted in", type, "remove", removeIDs);
+						let promises = removeIDs.map(d => transaction(this.db, "DELETE FROM " + type + " WHERE id = ?", [d.id]));
+						await Promise.all(promises);
 					}
 				}
 			}else if(type === "follows")
@@ -529,8 +543,6 @@ export class ViewModel {
 						let removeIDs = rawData._array.filter(data => {
 							return !check.find(other => other.follower === data.follower && other.followee === data.followee);
 						});
-						console.log(rawData.length, check.length);
-						console.log("Something has been deleted in", type, "remove", removeIDs);
 						let promises = removeIDs.map(d => transaction(this.db, "DELETE FROM follows WHERE follower = ? AND followee = ?", [d.follower, d.followee]));
 						await Promise.all(promises);
 					}

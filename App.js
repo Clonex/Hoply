@@ -5,7 +5,7 @@ import { Root } from "native-base";
 import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
-const db = SQLite.openDatabase('databae14.db');
+const db = SQLite.openDatabase('databae20.db');
 
 export default class App extends React.Component {
   constructor()
@@ -31,8 +31,8 @@ export default class App extends React.Component {
       tx.executeSql('CREATE TABLE IF NOT EXISTS groupUsers (groupID TEXT, userID TEXT);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS groupMessages (name TEXT, groupID TEXT, msgID TEXT, unixStamp INTEGER);');
 
-      tx.executeSql('CREATE TABLE IF NOT EXISTS post (userID TEXT, text TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS profilePicture (userID TEXT, img TEXT, unixStamp INTEGER, msgID TEXT);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS posts (userID TEXT, text TEXT, msgID TEXT, unixStamp INTEGER);');
+      tx.executeSql('CREATE TABLE IF NOT EXISTS profilePicture (userID TEXT, img TEXT, stamp TEXT, unixStamp INTEGER, msgID TEXT);');
 
     });
 

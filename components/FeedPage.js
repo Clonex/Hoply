@@ -43,9 +43,7 @@ export default class FeedPage extends React.Component {
   wallPost = async () => {
     let data = await api("messages", {}, "POST", {
       sender: this.props.user.id,
-      body: CMDbuilder("JSON", JSON.stringify({
-        message: this.state.currMsg
-      })),
+      body: this.state.currMsg,
       receiver: WALL_ID
     });
     if(data === 200 || data === 201)
@@ -89,7 +87,7 @@ export default class FeedPage extends React.Component {
             this.state.posts.length > 0 ? 
               this.state.posts.map((post, key) => <Cards key={key} data={post} navigation={this.props.navigation}/>)
             : 
-            <Text style={{width: "100%", textAlign: "center"}}>No posts! Get some friends..</Text>
+            <Text style={styles.centerText}>No posts! Go 'like' some friends..</Text>
           }
         </Content>
       </Container>);
@@ -99,5 +97,6 @@ export default class FeedPage extends React.Component {
 const styles = StyleSheet.create({
  btn: {
    marginTop: 5
- }
+ },
+ centerText: {width: "100%", textAlign: "center"}
 });
