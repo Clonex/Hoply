@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, ActivityIndicator } from 'react-native';
 
-import { Container, Header, Content, Form, Item, Input, Button, View } from 'native-base';
+import { Container, Header, Content, Form, Item, Input, Button, View, ActionSheet } from 'native-base';
 import {api, transaction} from "./baseFunctions";
 
 import uuid from "uuid/v4";
@@ -46,6 +46,24 @@ export default class LoginPage extends React.Component {
     }
   }
 
+  setUser = async (data) => {
+    this.props.ViewModel.setUserID(data.id);
+    await this.props.ViewModel.get("users");
+    await this.props.ViewModel.get("follows");
+    
+    this.setState({
+      loadingText: "Syncing data..",
+    });
+
+    await this.props.ViewModel.get("messages");
+
+    setInterval(async () => {
+      await this.props.ViewModel.get("messages");
+    }, 3000);
+
+    this.props.updateData("user", data);
+  }
+
   /*
    * Checks whenever a user exists in the remote database, and saves the info if its correct.
    */
@@ -57,32 +75,31 @@ export default class LoginPage extends React.Component {
     let data = await api("users", {name: {t: "=", v: this.state.username}});
     if(data.length > 0)
     {
-      this.props.ViewModel.setUserID(data[0].id);
-      await this.props.ViewModel.get("users");
-      await this.props.ViewModel.get("follows");
-      
-      this.setState({
-        loadingText: "Syncing data..",
-      });
-
-      await this.props.ViewModel.get("messages");
-
-      setInterval(async () => {
-        await this.props.ViewModel.get("messages");
-      }, 3000);
-
-      this.props.updateData("user", data[0]);
-
-     //await this.props.ViewModel.sync("messages");
-      //this.props.updateData("user", data[0]);
-      /*requestAnimationFrame(async () => {
-        await this.props.ViewModel.get("users");
-        await this.props.ViewModel.get("follows");
-        setInterval(async () => {
-          await this.props.ViewModel.get("messages");
-        }, 3000);
-      });*/
-      //syncMessages(this.props.db);
+     if(data.length > 1)
+     {
+      ActionSheet.show(
+        {
+          options: [
+            ...data.map(d => d.id + "#" + d.name),
+            "Cancel",
+          ],
+          cancelButtonIndex: data.length,
+          title: "Multiple accounts found"
+        },
+        buttonIndex => {
+          if(buttonIndex === data.length)
+          {
+            this.setState({
+                loading: false,
+                loadingText: false,
+              });
+          }else{
+            this.setUser(data[buttonIndex]);
+          }
+        });
+     }else{
+       this.setUser(data[0]);
+     }
     }else{
       alert("User not found!");
       this.setState({

@@ -63,11 +63,13 @@ export default class App extends React.Component {
     this.setState(newState);
   }
   render() {
-    return this.state.user.id ? 
-      <Root>
-        <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={this.ViewModel}/> 
-      </Root>
-      : 
-      <LoginPage updateData={this.updateState} db={db} ViewModel={this.ViewModel}/>;
+    return <Root>
+      {
+        this.state.user.id ? 
+          <SiteHandler updateData={this.updateState} user={this.state.user} db={db} signOut={this.signOut} ViewModel={this.ViewModel}/> 
+        : 
+          <LoginPage updateData={this.updateState} db={db} ViewModel={this.ViewModel}/>
+      }
+      </Root>;
   }
 }
