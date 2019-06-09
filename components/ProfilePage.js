@@ -31,6 +31,9 @@ export default class ProfilePage extends React.Component {
     this.ViewModel = new ViewModel(props.db);
   }
 
+  /*
+   * Updates the userID if the app navigates to a new profile from the profile.
+   */
   componentDidUpdate(prevProps)
   {
     if(prevProps.navigation.state.params && this.props.navigation.state.params && prevProps.navigation.state.params.id !== this.props.navigation.state.params.id)
@@ -55,8 +58,6 @@ export default class ProfilePage extends React.Component {
     requestAnimationFrame(async () => {
       this.getDBinfo();
       this.findUser();
-      /*await this.props.ViewModel.sync("follows");
-      await this.getDBinfo();*/
     });
   }
 
@@ -93,6 +94,10 @@ export default class ProfilePage extends React.Component {
     });
   }
 
+
+  /*
+   * Opens the camera and saves the picture as a profile picture.
+   */
   takePicture = async () => {
 		this.setState({
 			loading: true
@@ -144,7 +149,7 @@ export default class ProfilePage extends React.Component {
   }
 
   /*
-   *
+   * Removes the current user from the remote database, and signs out.
    */
   removeAccount = async () => {
     await api("follows", {
@@ -180,6 +185,9 @@ export default class ProfilePage extends React.Component {
     this.props.signOut();
   }
 
+ /*
+  * Opens the settings action sheet.
+  */
   showSettings = () =>
   {
     ActionSheet.show(

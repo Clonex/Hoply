@@ -19,11 +19,17 @@ export default class LoginPage extends React.Component {
     };
   }
 
+  /*
+   * This is a ifecycle hook, which is being called when the component has been mounted. 
+   */
   componentDidMount()
   {
     this.loginCheck();
   }
 
+  /*
+   * Checks if a user already is signed in.
+   */
   loginCheck = async () => {
     const data = await AsyncStorage.getItem('login');
     if(data !== null)

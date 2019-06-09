@@ -20,14 +20,14 @@ export default class FeedPage extends React.Component {
   }
 
   /*
-   *
+   * This is a ifecycle hook, which is being called when the component has been mounted.
    */
   componentWillMount() {
     this.getData();
   }
 
   /*
-   *
+   * Updates the wall data.
    */
   getData = async (page = 0) => {
     this.props.ViewModel.get("getWall", (data) => {
@@ -38,7 +38,7 @@ export default class FeedPage extends React.Component {
   }
 
   /*
-   *
+   * Posts a message to the wall.
    */
   wallPost = async () => {
     let data = await api("messages", {}, "POST", {

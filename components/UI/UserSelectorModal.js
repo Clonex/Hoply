@@ -33,7 +33,7 @@ export default class UserSelectorModal extends React.Component {
   }
 
   /*
-   *
+   * Selects/unselects a user @param uID from the list in the state.
    */
   selectUsr = (uID) => {
     let selected = [...this.state.selected];

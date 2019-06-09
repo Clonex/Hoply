@@ -21,7 +21,7 @@ export default class Header extends React.Component {
     }
 
     /*
-     *
+     * Resets the search state, when the route is not active.
      */
     blurLogic = () => {
         if(this.state.results.length === 0)
@@ -35,14 +35,16 @@ export default class Header extends React.Component {
     }
 
     /*
-     *
+     * Resets the search state, when the route is active.
+     */
+    focusChecker = () => {
+        this.setState({searching: true});
+    }
+
+    /*
+     * Searches the database for a user matching the given keyword.
      */
     searchr = async (text) => {
-        //let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
-        /*let results = await transaction(this.props.db, "SELECT * FROM users WHERE name LIKE ?", ["%" + text + "%"]);
-        console.log(results);
-		  this.setState({results: results._array.reverse(), currSearch: text});*/
-		
 		  this.setState({currSearch: text});
 		  this.props.ViewModel.get("searchUsers", (users) => {
 			if(text === this.state.currSearch)
@@ -53,13 +55,6 @@ export default class Header extends React.Component {
 				});
 			}
 		  }, ["%" + text + "%"]);
-    }
-
-    /*
-     *
-     */
-    focusChecker = () => {
-        this.setState({searching: true});
     }
 
     /*

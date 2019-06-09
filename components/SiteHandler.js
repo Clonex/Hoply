@@ -6,6 +6,9 @@ import MessagesPage from "./MessagesPage";
 import FeedPage from "./FeedPage";
 import ProfilePage from "./ProfilePage";
 
+/*
+ * Creates the navigator and and the different routes available.
+ */
 export default class SiteHandler extends React.Component {
     iconHandler = (focused, tintColor, iconName, iconType) => <Icon name={iconName} style={focused ? {color: tintColor} : {}} type={iconType}/>
     render() {

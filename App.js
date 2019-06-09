@@ -39,6 +39,10 @@ export default class App extends React.Component {
 
     });
   }
+
+  /*
+   * Resets the local database, and signs the user out.
+   */
   signOut = () => {
     AsyncStorage.removeItem("login");
     
@@ -59,6 +63,9 @@ export default class App extends React.Component {
     });
   }
 
+  /*
+   * Sets the state @param key to the given @param value.
+   */
   updateState = (key, value) => {
     let newState = {};
     if(key === "user")

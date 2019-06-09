@@ -128,22 +128,6 @@ class MessagesPage extends React.Component {
 					});
 				});
 
-      	/*let data = await api("messages", {}, "POST", {
-					sender: this.props.user.id,
-					body: CMDbuilder("BIN", pickerResult.base64),//"data:image/jpeg;base64," + pickerResult.base64),
-					receiver: this.state.selectedMessage
-				});
-				this.setState({
-					loading: false
-				});
-				if(data === 200 || data === 201)
-				{
-					this.props.ViewModel.get("messages", (data) => {
-						this.setState({
-							messages: data
-						});
-					});
-				}*/
       }else{
 				this.setState({
 					loading: false
