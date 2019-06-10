@@ -9,10 +9,11 @@ import { navigate, WALL_ID, api } from "./baseFunctions";
 export default class FeedPage extends React.Component {
 
   /*
-   *
+   * Initiates the needed states and instance variables needed in the component.
    */
   constructor(){
     super();
+    this.sending = false;
     this.state = {
       currMsg: "",
       posts: [],
@@ -29,7 +30,7 @@ export default class FeedPage extends React.Component {
   /*
    * Updates the wall data.
    */
-  getData = async (page = 0) => {
+  getData = async () => {
     this.props.ViewModel.get("getWall", (data) => {
       this.setState({
         posts: data
@@ -41,22 +42,25 @@ export default class FeedPage extends React.Component {
    * Posts a message to the wall.
    */
   wallPost = async () => {
-    let data = await api("messages", {}, "POST", {
-      sender: this.props.user.id,
-      body: this.state.currMsg,
-      receiver: WALL_ID
-    });
-    if(data === 200 || data === 201)
+    if(!this.sending)
     {
+      this.sending = true;
+      await this.props.ViewModel.do("message", {
+        sender: this.props.user.id,
+        body: this.state.currMsg,
+        receiver: WALL_ID
+      });
+      
       this.setState({
         currMsg: ""
       });
-      this.getData();
+      requestAnimationFrame(() => this.getData());
+      this.sending = false;
     }
   }
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
  

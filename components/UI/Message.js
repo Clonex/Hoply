@@ -49,7 +49,7 @@ export default class Message extends React.Component {
   }
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
     let message = this.props.data;

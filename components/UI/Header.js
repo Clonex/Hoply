@@ -8,7 +8,7 @@ import {transaction, navigate, maxString} from "../baseFunctions";
 export default class Header extends React.Component {
 
     /*
-     *
+     * Initiates the needed states needed in the component.
      */
     constructor()
     {
@@ -58,7 +58,7 @@ export default class Header extends React.Component {
     }
 
     /*
-     *
+     * @returns the components which needs to be rendered in this component.
      */
     render() {
       let leftContent = this.props.leftContent;

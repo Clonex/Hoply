@@ -10,10 +10,6 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 {
 	try {
 		let paramVar = typeof params === "string" ? params : swaggerParams(params).join("&");
-		if(endpoint === "messages")
-		{
-			//console.log("API", "http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar);
-		}
 		let response = await fetch("http://caracal.imada.sdu.dk/app2019/" + endpoint + "?" + paramVar, {
 			method: method,
 	        body: payload ? JSON.stringify(payload) : undefined,
@@ -31,10 +27,10 @@ export async function api(endpoint = "users", params = {}, method = "GET", paylo
 
 }
 
-import { Permissions } from "expo";
 /*
-	* Asks and checks if the needed permissions has been given.
-	*/
+* Asks and checks if the needed permissions has been given.
+*/
+import { Permissions } from "expo";
 export async function askPermissionsAsync() {
 	const { status, permissions } = await Permissions.askAsync(Permissions.CAMERA, Permissions.CAMERA_ROLL, Permissions.LOCATION);
 	return status === "granted";
@@ -225,11 +221,10 @@ export class ViewModel {
 			return respData === 200 || respData === 201;
 		}else if(type === "group")
 		{
-			console.log("ViewModel group", data);
 			let groupID = uuid();
 
 			/*
-				Local shit
+				Local database
 			*/
 			await transaction(this.db, `INSERT INTO groups (name, id) VALUES (?, ?)`, [data.title, groupID]);
 			await transactions(this.db, async (tx, resolve) => {
@@ -240,9 +235,8 @@ export class ViewModel {
 				resolve();
 			});
 	
-
 			/*	
-				Server stuff
+				Remote database
 			*/
 			await this.do("createUser", {
 				id: groupID,
@@ -258,11 +252,6 @@ export class ViewModel {
 				body: "Created a new group chat!",
 				receiver: groupID
 			});
-
-			//DONE
-			console.log("Group created!", promises);
-
-			
 		}else if(type === "unlike")
 		{
 			await api("follows", {
@@ -311,7 +300,6 @@ export class ViewModel {
 									* 
 								FROM groups 
 								WHERE id IN (?)`, groupIDs.map(d => d.id)))._array;
-				console.log("Groups", data, "ids", groupIDs);
 
 				data = (await transaction(this.db, sqlQuery))._array;
 				callback({data, groups: groupData});
@@ -326,10 +314,6 @@ export class ViewModel {
 			data = (await transaction(this.db, sqlQuery))._array;
 
 			data = {data, groups: groupData};
-			//console.log("Messages2 data", data);
-		}else if(type === "follows")
-		{
-			
 		}else if(type === "getWall")
 		{
 			let query = 
@@ -465,7 +449,6 @@ export class ViewModel {
 				let isProfilePic = currResp.receiver === PB_ID;
 				if(isGroup)
 				{
-					//console.log("GROUP data", currResp);
 					promises.push(transaction(this.db, 'INSERT INTO groups (name, id) VALUES (?, ?)', [
 						"TEST",
 						currResp.receiver,
@@ -482,7 +465,6 @@ export class ViewModel {
 				}
 				if(isProfilePic)
 				{
-					console.log("Saving piucture!");
 					promises.push(transaction(this.db, 'INSERT INTO profilePicture (userID, img, stamp, unixStamp, msgID) VALUES (?, ?, ?, ?, ?)', [
 						currResp.sender,
 						currResp.body,
@@ -491,7 +473,6 @@ export class ViewModel {
 						currResp.id
 					]));
 				}
-				//console.log("INSERTING", type, currResp);
 			}
 			let datArr = [
 				...Object.keys(currResp).map(key => currResp[key]),
@@ -523,7 +504,6 @@ export class ViewModel {
 					{
 						check = check.map(d => d.id);
 						let removeIDs = rawData._array.find(d => check.indexOf(d) === -1);
-						console.log("Something has been deleted in", type, "remove", removeIDs);
 						let promises = removeIDs.map(d => transaction(this.db, "DELETE FROM " + type + " WHERE id = ?", [d.id]));
 						await Promise.all(promises);
 					}

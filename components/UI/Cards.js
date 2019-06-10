@@ -9,7 +9,7 @@ import { ISOparser, CMDparser, navigate } from "../baseFunctions";
 export default class Cards extends React.Component {
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
     let data = this.props.data;

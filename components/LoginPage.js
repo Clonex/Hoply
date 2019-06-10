@@ -8,7 +8,7 @@ import { api } from "./baseFunctions";
 export default class LoginPage extends React.Component {
   
   /*
-   *
+   * Initiates the needed states needed in the component.
    */
   constructor()
   {
@@ -66,15 +66,12 @@ export default class LoginPage extends React.Component {
    */
   setUser = async (data) => {
     AsyncStorage.setItem('login', JSON.stringify(data));
-
     this.props.ViewModel.setUserID(data.id);
-    await this.props.ViewModel.get("users");
-    await this.props.ViewModel.get("follows");
     
     this.setState({
       loadingText: "Syncing data..",
     });
-
+    
     await this.props.ViewModel.get("messages");
 
     setInterval(async () => {
@@ -128,7 +125,7 @@ export default class LoginPage extends React.Component {
   }
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
     return (<Container>

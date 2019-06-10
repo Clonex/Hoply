@@ -11,7 +11,7 @@ import { ViewModel, def, transaction, api, navigate, askPermissionsAsync, CMDbui
 export default class ProfilePage extends React.Component {
   
   /*
-   *
+   * Initiates the needed states and instance variables needed in the component.
    */
   constructor(props)
   {
@@ -28,7 +28,6 @@ export default class ProfilePage extends React.Component {
       loading: false,
     };
     this.state = {...this.blankState};
-    this.ViewModel = new ViewModel(props.db);
   }
 
   /*
@@ -73,13 +72,11 @@ export default class ProfilePage extends React.Component {
   }
 
   /*
-   *
+   * Get the profile info needed from the database. 
    */
   getDBinfo = async () => {
     let data = await transaction(this.props.db, "SELECT stamp FROM follows WHERE follower = ? AND followee = ?", [this.props.user.id, this.state.userID]);
-    let test = await transaction(this.props.db, "SELECT * FROM follows");
 
-    
     let likes = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE followee = ?", [this.state.userID]);
     let liked = await transaction(this.props.db, "SELECT COUNT(stamp) as count FROM follows WHERE follower = ?", [this.state.userID]);
     let postedData = await this.props.ViewModel.get("getWall", false, [this.state.userID]);
@@ -229,7 +226,7 @@ export default class ProfilePage extends React.Component {
   }
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
     return (<Container>

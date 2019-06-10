@@ -12,7 +12,7 @@ import {api, navigate, ISOparser, CMDbuilder, askPermissionsAsync} from "./baseF
 class MessagesPage extends React.Component {
 
   /*
-   *
+   * Initiates the needed states and instance variables needed in the component.
    */
 	constructor(props)
 	{
@@ -75,21 +75,18 @@ class MessagesPage extends React.Component {
 			let location = await Location.getCurrentPositionAsync({});
 			if(location)
 			{
-				let data = await api("messages", {}, "POST", {
+				await this.props.ViewModel.do("message", {
 					sender: this.props.user.id,
 					body: CMDbuilder("GPS", location.coords.latitude + " " + location.coords.longitude),
 					receiver: this.state.selectedMessage
 				});
 				this.setState({loading: false});
-				if(data === 200 || data === 201)
-				{
-					this.props.ViewModel.get("messages", (data) => {
-						this.setState({
-							messages: data.data,
-							groups: data.groups,
-						});
+				this.props.ViewModel.get("messages", (data) => {
+					this.setState({
+						messages: data.data,
+						groups: data.groups,
 					});
-				}
+				});
 			}
 		}
 	}
@@ -158,15 +155,12 @@ class MessagesPage extends React.Component {
 	sendMessage = async () => {
 		if(this.state.currMsg.length > 0)
 		{
-			let data = await api("messages", {}, "POST", {
+			await this.props.ViewModel.do("message", {
 				sender: this.props.user.id,
 				body: this.state.currMsg,
 				receiver: this.state.selectedMessage
 			});
-			if(data === 200 || data === 201)
-			{
-				this.setState({currMsg: ""});
-			}
+			this.setState({currMsg: ""});
 		}
 	}
 
@@ -188,7 +182,7 @@ class MessagesPage extends React.Component {
 	};
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
 		let myMessages = this.state.messages.filter(message => message.sender === this.props.user.id || message.receiver === this.props.user.id);
@@ -207,6 +201,7 @@ class MessagesPage extends React.Component {
 			return <UserSelectorModal 
 								db={this.props.db}
 								user={this.props.user}
+								ViewModel={this.props.ViewModel}
 								select={async (selected) => {
 									if(!selected)
 									{

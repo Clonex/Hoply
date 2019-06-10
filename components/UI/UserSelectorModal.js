@@ -4,11 +4,11 @@ import { StyleSheet, ScrollView } from 'react-native';
 import Header from "./Header";
 import { Container, Text, List, ListItem, Left, Right, Icon, Button, CheckBox } from 'native-base';
 
-import { ViewModel, maxString } from "../baseFunctions";
+import { maxString } from "../baseFunctions";
 export default class UserSelectorModal extends React.Component {
 
   /*
-   *
+   * Initiates the needed states in the component.
    */
   constructor(props)
   {
@@ -17,15 +17,14 @@ export default class UserSelectorModal extends React.Component {
       users: [],
       selected: [],
     };
-    this.ViewModel = new ViewModel(props.db);
   }
 
   /*
-   *
+   * Gets the current profile information.
    */
   componentWillMount()
   {
-    this.ViewModel.get("listUsers", (data) => {
+    this.props.ViewModel.get("listUsers", (data) => {
       this.setState({
         users: data,
       });
@@ -47,7 +46,7 @@ export default class UserSelectorModal extends React.Component {
   }
 
   /*
-   *
+   * @returns the components which needs to be rendered in this component.
    */
   render() {
     return (<Container>
