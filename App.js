@@ -10,6 +10,9 @@ import {ViewModel} from "./components/baseFunctions";
 const db = SQLite.openDatabase('localdb.db');
 
 export default class App extends React.Component {
+  /*
+   * Initiates the needed states and instance variables needed in the component.
+   */
   constructor()
   {
     super();
@@ -22,6 +25,9 @@ export default class App extends React.Component {
     this.ViewModel = new ViewModel(db);
   }
 
+  /*
+   * Checks whenever the needed tables has been created, if not it creates them. 
+   */
   componentDidMount()
   {
     db.transaction(tx => {
@@ -29,14 +35,9 @@ export default class App extends React.Component {
       tx.executeSql('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY NOT NULL, name TEXT, stamp TEXT, unixStamp INTEGER);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS follows (follower TEXT, followee TEXT, stamp TEXT, unixStamp INTEGER, PRIMARY KEY (follower, followee));');
 
-      // Group message tables.
       tx.executeSql('CREATE TABLE IF NOT EXISTS groups (name TEXT, id TEXT);');
-      /*tx.executeSql('CREATE TABLE IF NOT EXISTS groupUsers (groupID TEXT, userID TEXT);');
-      tx.executeSql('CREATE TABLE IF NOT EXISTS groupMessages (name TEXT, groupID TEXT, msgID TEXT, unixStamp INTEGER);');*/
-
       tx.executeSql('CREATE TABLE IF NOT EXISTS posts (userID TEXT, text TEXT, msgID TEXT, unixStamp INTEGER);');
       tx.executeSql('CREATE TABLE IF NOT EXISTS profilePicture (userID TEXT, img TEXT, stamp TEXT, unixStamp INTEGER, msgID TEXT);');
-
     });
   }
 
