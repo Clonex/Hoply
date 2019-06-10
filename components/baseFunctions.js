@@ -1,6 +1,4 @@
 export const WALL_ID = "7e1b11e7-0d3f-4360-9e68-b3b5faf08ddc";
-export const COMMENTS_ID = "ae3c71d8-e0b6-4b7c-a762-1536d81fde49";
-export const LIKES_ID = "dffaa264-5418-4c1f-aa9c-f6493e0f915c";
 export const PB_ID = "d7d64795-9c9d-4a4f-b2d5-116d452e378f";
 
 /*

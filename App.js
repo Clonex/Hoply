@@ -7,7 +7,7 @@ import SiteHandler from "./components/SiteHandler";
 import LoginPage from "./components/LoginPage";
 import {ViewModel} from "./components/baseFunctions";
 
-const db = SQLite.openDatabase('databae21.db');
+const db = SQLite.openDatabase('localdb.db');
 
 export default class App extends React.Component {
   constructor()
